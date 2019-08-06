@@ -1,12 +1,14 @@
 # real-robots
+![https://travis-ci.com/AIcrowd/real_robots.svg?branch=master](https://travis-ci.com/AIcrowd/real_robots.svg?branch=master)
 
 <TABLE " width="100%" BORDER="0">
 <TR>
-<TD><img src="docs/figs/demo0.gif" alt="demo0" width="100%"></TD>
-<TD><img src="docs/figs/demo1.gif" alt="demo1" width="100%"></TD>
-<TD><img src="docs/figs/demo2.gif" alt="demo1" width="100%"></TD>
+<TD><img src="https://i.imgur.com/ORXaKBB.gif" alt="demo0" width="100%"></TD>
+<TD><img src="https://i.imgur.com/w66lz4L.gif" alt="demo1" width="100%"></TD>
+<TD><img src="https://i.imgur.com/oYARyZV.gif" alt="demo1" width="100%"></TD>
 </TR>
 </TABLE>
+
 
 Robots that learn to interact with the environment autonomously
 
