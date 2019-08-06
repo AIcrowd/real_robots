@@ -242,12 +242,10 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         return observation, reward, done, info
 
-
-class REALRobotEnvSingleObj(MJCFBaseBulletEnv):
+class REALRobotEnvSingleObj(REALRobotEnv):
     def __init__(self, render=False):
         super(REALRobotEnvSingleObj, self).__init__(render)
-        self.robot.used_objects = ["table", "orange"]
-
+        self.robot.used_objects = ["table", "cube"]
 
 class EnvCamera:
 
