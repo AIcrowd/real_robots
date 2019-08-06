@@ -1,4 +1,5 @@
 # real-robots
+
 ![https://travis-ci.com/AIcrowd/real_robots.svg?branch=master](https://travis-ci.com/AIcrowd/real_robots.svg?branch=master)
 
 <TABLE " width="100%" BORDER="0">
@@ -9,13 +10,22 @@
 </TR>
 </TABLE>
 
-
 Robots that learn to interact with the environment autonomously
 
 ## Installation
 
 ```bash
 pip install -U real_robots
+```
+
+### Or if you are developing locally, then
+
+```bash
+git clone git@github.com:AIcrowd/real_robots.git
+cd real_robots
+pip install -e .
+pip install requirements_dev.txt
+
 ```
 
 ## Usage
