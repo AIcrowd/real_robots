@@ -4,15 +4,17 @@ import gym
 from real_robots.envs import Goal
 import numpy as np
 
-import tqdm
+from tqdm.auto import tqdm
 
 """Local evaluation helper functions."""
 
 
-def build_score_object(scores, pbar=False):
+def build_score_object(scores):
     score_string = ""
     total_score = 0
     challenges = ['2D','2.5D','3D']
+
+    score_object = {}
     for key in challenges:
         if key in scores.keys():
             results = scores[key]
@@ -22,12 +24,12 @@ def build_score_object(scores, pbar=False):
             results = []
             formatted_results = "None"
             challenge_score = 0
-        if pbar:
-            pbar.write("Challenge {} - {:.4f}".format(key, challenge_score))
-            pbar.write("Goals: {}".format(formatted_results))
         total_score += challenge_score
+        score_object["score_{}".format(key)] = challenge_score
     total_score /= len(challenges)
-    return {"score": total_score}
+
+    score_object["score_total"] = total_score
+    return  score_object
 
 
 def evaluate(Controller, 
@@ -88,30 +90,32 @@ def evaluate(Controller,
     observation = env.reset()
     reward = 0
     done = False    
-    intrinsic_phase_progress_bar = tqdm.tqdm(
+    intrinsic_phase_progress_bar = tqdm(
                         total=intrinsic_timesteps,
                         desc="Intrinsic Phase",
                         unit="steps ",
-                        leave=True
+                        leave=False
                         )
     intrinsic_phase_progress_bar.write("######################################################")
     intrinsic_phase_progress_bar.write("# Intrinsic Phase Initiated")
     intrinsic_phase_progress_bar.write("######################################################")
 
     # intrinsic phase
+    steps = 0
     while not done:
         # Call your controller to chose action 
         action = controller.step(observation, reward, done)
         # do action
         observation, reward, done, _ = env.step(action)
-        intrinsic_phase_progress_bar.update(env.timestep)
+        steps += 1
+        intrinsic_phase_progress_bar.update(1)
     intrinsic_phase_progress_bar.write("######################################################")
     intrinsic_phase_progress_bar.write("# Intrinsic Phase Complete")
     intrinsic_phase_progress_bar.write("######################################################")
     # extrinsic phase
     # tqdm.write("Starting extrinsic phase")
 
-    extrinsic_phase_progress_bar = tqdm.tqdm(
+    extrinsic_phase_progress_bar = tqdm(
                                         total = extrinsic_trials,
                                         desc = "Extrinsic Phase Trials",
                                         unit = "trials ",
@@ -126,7 +130,7 @@ def evaluate(Controller,
         observation = env.reset()
         reward = 0
         done = False
-        extrinsic_phase_progress_bar.update(k)
+        extrinsic_phase_progress_bar.update(1)
         env.set_goal()
 
         while not done:
@@ -136,8 +140,7 @@ def evaluate(Controller,
         add_scores(*env.evaluateGoal())
         extrinsic_phase_progress_bar.set_postfix(
                         build_score_object(
-                                scores,
-                                pbar=extrinsic_phase_progress_bar
+                                scores
                             )
                     )
 
