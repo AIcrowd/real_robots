@@ -11,6 +11,7 @@ def evaluate(Controller,
             intrinsic_timesteps=1e7,
             extrinsic_timesteps=2e3,
             extrinsic_trials=350,
+            visualize=True,
             goals_dataset_path="./goals.npy.npz"):
     """
     A wrapper function to locally simulate the evaluation process
@@ -29,11 +30,18 @@ def evaluate(Controller,
         Maximum number of timesteps in the Extrinsic phase
     extrinsic_trials: int
         Total number of trials in the extrinsic phase
+    visualize: bool
+        Boolean flag which enables or disables the visualizer when 
+        running the evaluation
     goals_dataset_path: str
         Path to a goals dataset
     """
     env = gym.make('REALRobot-v0')
     env.set_goals_dataset_path(goals_dataset_path)
+
+    if visualize:
+        env.render('human')
+    
     controller = Controller(env.action_space)
 
     env.intrinsic_timesteps = intrinsic_timesteps #default = 1e7
