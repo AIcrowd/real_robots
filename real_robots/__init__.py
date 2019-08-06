@@ -9,6 +9,8 @@ __version__ = '0.1.3'
 import os
 from gym.envs.registration import register
 
+from .evaluate import evaluate
+
 register(id='REALRobot-v0',
     entry_point='real_robots.envs:REALRobotEnv',
 )
@@ -16,8 +18,6 @@ register(id='REALRobot-v0',
 register(id='REALRobotSingleObj-v0',
     entry_point='real_robots.envs:REALRobotEnvSingleObj',
 )
-
-from .evaluate import evaluate
 
 
 def getPackageDataPath():
