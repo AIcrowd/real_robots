@@ -61,7 +61,9 @@ def evaluate(Controller,
             scores[challenge] = [score]
 
     def report_score():
-        print("*****************")
+        print(
+            "##########################################################\n"
+        )
         total_score = 0
         challenges = ['2D','2.5D','3D']
         for key in challenges:
@@ -73,18 +75,18 @@ def evaluate(Controller,
                 results = []
                 formatted_results = "None"
                 challenge_score = 0
-
             print("Challenge {} - {:.4f}".format(key, challenge_score))
             print("Goals: {}".format(formatted_results))
             total_score += challenge_score
         total_score /= len(challenges)
-        print("Overall Score: {:.4f}".format(total_score))  
-        print("*****************")
+        print(
+            "Overall Score: {:.4f}\n".format(total_score),
+        )
     ##########################################################
     ##########################################################
     
-    observation = env.reset() 
-    reward = 0 
+    observation = env.reset()
+    reward = 0
     done = False
 
     # intrinsic phase
