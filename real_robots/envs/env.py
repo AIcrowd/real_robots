@@ -53,9 +53,16 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             self.robot.ObsSpaces.GOAL].sample()*0)
         
         # Set default goals dataset path
+        # 
+        # The goals dataset is basically a list of real_robots.envs.env.Goal
+        # objects which are stored using : 
+        # 
+        # np.savez_compressed(
+        #               "path.npy.npz",
+        #                list_of_goals)
+        #
         self.goals_dataset_path = os.path.join( 
                                     real_robots.getPackageDataPath(),
-                                    "data",
                                     "goals_dataset.npy.npz")
         self.goals = None
         self.goal_idx = -1
@@ -80,8 +87,11 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         self.eyes[name] = cam
 
     def set_goals_dataset_path(self, path):
-        assert os.path.exists(path), "Non existent path {} provided".format(path)
+        assert os.path.exists(path), "Non existent path {}".format(path)
         self.goals_dataset_path = path
+        self.goals = list(np.load(
+                self.goals_dataset_path, allow_pickle=True).items())[0][1]
+        self.goal_idx = 0
         
     def set_goal(self):
         if self.goals is None:

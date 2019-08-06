@@ -5,6 +5,7 @@ import real_robots
 
 
 class RandomPolicy:
+
     def __init__(self, action_space):
         self.action_space = action_space
         self.action = np.zeros(action_space.shape[0])
@@ -15,9 +16,9 @@ class RandomPolicy:
         return self.action
 
 env = gym.make("REALRobot-v0")
-env.render("human")
-
 pi = RandomPolicy(env.action_space)
+
+env.render("human")
 
 observation = env.reset()
 for t in range(40):
