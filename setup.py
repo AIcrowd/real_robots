@@ -41,7 +41,7 @@ setup(
     description="Robots that learn to interact with the environment autonomously",
     entry_points={
         'console_scripts': [
-            'real_robots=real_robots.cli:main',
+            'real-robots-demo=real_robots.cli:demo',
         ],
     },
     install_requires=requirements,

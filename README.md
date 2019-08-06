@@ -18,15 +18,14 @@ Robots that learn to interact with the environment autonomously
 pip install -U real_robots
 ```
 
-### Or if you are developing locally, then
-
-```bash
-git clone git@github.com:AIcrowd/real_robots.git
-cd real_robots
-pip install -e .
-pip install requirements_dev.txt
+If everything went well, then you should be able to run :
 
 ```
+real-robots-demo
+```
+
+and it should (eventually) open up a small window with a little robotic arm
+doing random stuff.
 
 ## Usage
 
