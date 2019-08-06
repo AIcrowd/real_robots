@@ -40,7 +40,7 @@ for t in range(40):
 
 ## Local Evaluation
 
-```python
+````python
 import gym
 import numpy as np
 import real_robots
@@ -60,6 +60,7 @@ real_robots.evaluate(
                 intrinsic_timesteps=100,
                 extrinsic_timesteps=100,
                 extrinsic_trials=2,
+                visualize=True,
                 goals_dataset_path="./goals.npy.npz",
             )
 #  NOTE : You can find a sample goals.npy.npz file at
@@ -78,3 +79,4 @@ real_robots.evaluate(
 -   Francesco Mannella
 -   Emilio Cartoni
 -   Sharada Mohanty
+````
