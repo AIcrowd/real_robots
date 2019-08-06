@@ -71,7 +71,6 @@ class Kuka(URDFBasedRobot):
 
         contact_dict = {}
         for part_name, part in self.parts.items():
-            contacts = []
             for contact in part.contact_list():
                 if abs(contact[8]) < self.contact_threshold:
                     name = self.object_names[contact[2]]
@@ -154,7 +153,6 @@ def get_object(bullet_client, object_file, x, y, z, roll=0, pitch=0, yaw=0):
 
     position = [x, y, z]
     orientation = bullet_client.getQuaternionFromEuler([roll, pitch, yaw])
-    fixed = True
     body = bullet_client.loadURDF(
             fileName=os.path.join(pybullet_data.getDataPath(), object_file),
             basePosition=position,

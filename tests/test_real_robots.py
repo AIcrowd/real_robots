@@ -7,7 +7,7 @@ import pytest
 
 from click.testing import CliRunner
 
-from real_robots import real_robots
+from real_robots import real_robots  # noqa
 from real_robots import cli
 
 
@@ -30,9 +30,8 @@ def test_content(response):
 def test_command_line_interface():
     """Test the CLI."""
     runner = CliRunner()
-    result = runner.invoke(cli.main)
+    result = runner.invoke(cli.demo)
     assert result.exit_code == 0
-    assert 'real_robots.cli.main' in result.output
-    help_result = runner.invoke(cli.main, ['--help'])
+    help_result = runner.invoke(cli.demo, ['--help'])
     assert help_result.exit_code == 0
     assert '--help  Show this message and exit.' in help_result.output

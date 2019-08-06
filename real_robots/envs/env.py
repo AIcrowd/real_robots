@@ -121,7 +121,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         return value
 
     def evaluateGoal(self):
-        initial_state = self.goal.initial_state
+        initial_state = self.goal.initial_state  # noqa F841
         final_state = self.goal.final_state
         current_state = self.robot.object_bodies
 
@@ -351,7 +351,7 @@ class EyeCamera:
         if bullet_client is None:
             bullet_client = self._p
 
-        self.targetPosition = targetPosition
+        # self.targetPosition = targetPosition
 
         view_matrix = bullet_client.computeViewMatrixFromYawPitchRoll(
                 cameraTargetPosition=self.pos,
