@@ -12,6 +12,26 @@ def evaluate(Controller,
             extrinsic_timesteps=2e3,
             extrinsic_trials=350,
             goals_dataset_path="./goals.npy.npz"):
+    """
+    A wrapper function to locally simulate the evaluation process
+    as is done for all the submitted controllers.
+
+    Parameters
+    ----------
+    Controller 
+        An example controller which should expose a `step` function, for 
+        the evaluator to compute the `action` given observation, reward
+        and done info
+    
+    intrinsic_timesteps : int
+        Maximum number of timesteps in the Intrinsic phase
+    extrinsic_timesteps: int
+        Maximum number of timesteps in the Extrinsic phase
+    extrinsic_trials: int
+        Total number of trials in the extrinsic phase
+    goals_dataset_path: str
+        Path to a goals dataset
+    """
     env = gym.make('REALRobot-v0')
     env.set_goals_dataset_path(goals_dataset_path)
     controller = Controller(env.action_space)
