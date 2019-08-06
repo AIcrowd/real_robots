@@ -46,8 +46,9 @@ def evaluate(Controller,
         the evaluator to compute the `action` given observation, reward
         and done info
 
-    intrinsic_timesteps : int
-        Maximum number of timesteps in the Intrinsic phase
+    intrinsic_timesteps : int, bool
+        Maximum number of timesteps in the Intrinsic phase.
+        If set to False, then
     extrinsic_timesteps: int
         Maximum number of timesteps in the Extrinsic phase
     extrinsic_trials: int
@@ -68,7 +69,6 @@ def evaluate(Controller,
 
     env.intrinsic_timesteps = intrinsic_timesteps  # default = 1e7
     env.extrinsic_timesteps = extrinsic_timesteps  # default = 2e3
-    extrinsic_trials = 3
 
     # Helper functions
     ##########################################################
@@ -80,40 +80,47 @@ def evaluate(Controller,
         else:
             scores[challenge] = [score]
     ##########################################################
+    if not intrinsic_timesteps:
+        # Set intrinsic_timesteps = 0 if its set as False
+        intrinsic_timesteps = 0
 
-    observation = env.reset()
-    reward = 0
-    done = False
-    intrinsic_phase_progress_bar = tqdm(
-                        total=intrinsic_timesteps,
-                        desc="Intrinsic Phase",
-                        unit="steps ",
-                        leave=True
-                        )
-    intrinsic_phase_progress_bar.write(
+    if intrinsic_timesteps > 0:
+        observation = env.reset()
+        reward = 0
+        done = False
+        intrinsic_phase_progress_bar = tqdm(
+                            total=intrinsic_timesteps,
+                            desc="Intrinsic Phase",
+                            unit="steps ",
+                            leave=True
+                            )
+        intrinsic_phase_progress_bar.write(
                     "######################################################"
                 )
-    intrinsic_phase_progress_bar.write("# Intrinsic Phase Initiated")
-    intrinsic_phase_progress_bar.write(
+        intrinsic_phase_progress_bar.write("# Intrinsic Phase Initiated")
+        intrinsic_phase_progress_bar.write(
                     "######################################################"
                 )
 
-    # intrinsic phase
-    steps = 0
-    while not done:
-        # Call your controller to chose action
-        action = controller.step(observation, reward, done)
-        # do action
-        observation, reward, done, _ = env.step(action)
-        steps += 1
-        intrinsic_phase_progress_bar.update(1)
-    intrinsic_phase_progress_bar.write(
+        # intrinsic phase
+        steps = 0
+        while not done:
+            # Call your controller to chose action
+            action = controller.step(observation, reward, done)
+            # do action
+            observation, reward, done, _ = env.step(action)
+            steps += 1
+            intrinsic_phase_progress_bar.update(1)
+        intrinsic_phase_progress_bar.write(
                     "######################################################"
                 )
-    intrinsic_phase_progress_bar.write("# Intrinsic Phase Complete")
-    intrinsic_phase_progress_bar.write(
+        intrinsic_phase_progress_bar.write("# Intrinsic Phase Complete")
+        intrinsic_phase_progress_bar.write(
                     "######################################################"
                 )
+    else:
+        print("[WARNING] Skipping Intrinsic Phase as intrinsic_timesteps = 0 or False")  # noqa
+
     # extrinsic phase
     # tqdm.write("Starting extrinsic phase")
 
@@ -123,11 +130,11 @@ def evaluate(Controller,
                                         unit="trials ",
                                         leave=True
                                         )
-    intrinsic_phase_progress_bar.write(
+    extrinsic_phase_progress_bar.write(
                     "######################################################"
                 )
     extrinsic_phase_progress_bar.write("# Extrinsic Phase Initiated")
-    intrinsic_phase_progress_bar.write(
+    extrinsic_phase_progress_bar.write(
                     "######################################################"
                 )
 
@@ -160,11 +167,11 @@ def evaluate(Controller,
                             )
                     )
 
-    intrinsic_phase_progress_bar.write(
+    extrinsic_phase_progress_bar.write(
                     "######################################################"
                 )
     extrinsic_phase_progress_bar.write("# Extrinsic Phase Complete")
-    intrinsic_phase_progress_bar.write(
+    extrinsic_phase_progress_bar.write(
                     "######################################################"
                 )
     extrinsic_phase_progress_bar.write(str(build_score_object(scores)))
