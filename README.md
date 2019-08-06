@@ -55,17 +55,19 @@ class RandomPolicy:
         self.action += 0.4*np.pi*np.random.randn(self.action_space.shape[0])
         return self.action
 
-real_robots.evaluate(
+result = real_robots.evaluate(
                 RandomPolicy,
-                intrinsic_timesteps=100,
-                extrinsic_timesteps=100,
-                extrinsic_trials=2,
+                intrinsic_timesteps=40,
+                extrinsic_timesteps=40,
+                extrinsic_trials=5,
                 visualize=True,
                 goals_dataset_path="./goals.npy.npz",
             )
 #  NOTE : You can find a sample goals.npy.npz file at
 #
 #  https://aicrowd-production.s3.eu-central-1.amazonaws.com/misc/REAL-Robots/goals.npy.npz
+print(result)
+# {'score_2D': 0.6949320310408206, 'score_2.5D': 0, 'score_3D': 0, 'score_total': 0.23164401034694018}
 ```
 
 -   Free software: MIT license
