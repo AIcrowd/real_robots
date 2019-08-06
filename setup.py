@@ -12,6 +12,7 @@ with open('README.md') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
+
 def get_all_data_files(directory='./real_robots/data/'):
     ret = []
     for dirpath, subdirs, files in os.walk(directory):
@@ -38,7 +39,8 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    description="Robots that learn to interact with the environment autonomously",
+    description="Robots that learn to interact "
+                "with the environment autonomously",
     entry_points={
         'console_scripts': [
             'real_robots=real_robots.cli:main',
