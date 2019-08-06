@@ -4,12 +4,21 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
+import os
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
+
+def get_all_data_files(directory='./real_robots/data/'):
+    ret = []
+    for dirpath, subdirs, files in os.walk(directory):
+        for f in files:
+            ret.append(os.path.join(dirpath, f))
+    return ret
+
 
 requirements = ['Click>=6.0', 'gym', 'pybullet', 'numpy']
 
@@ -46,6 +55,7 @@ setup(
     keywords='real_robots',
     name='real_robots',
     packages=find_packages(include=['real_robots']),
+    data_files=[('data', get_all_data_files())],
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
