@@ -8,20 +8,17 @@ import numpy as np
 """Local evaluation helper functions."""
 
 def evaluate(Controller, 
+            intrinsic_timesteps=1e7,
+            extrinsic_timesteps=2e3,
             extrinsic_trials=350,
-            goals_dataset_path="./goals.npy.npz",
-            debug=True):
+            goals_dataset_path="./goals.npy.npz"):
     env = gym.make('REALRobot-v0')
     env.set_goals_dataset_path(goals_dataset_path)
     controller = Controller(env.action_space)
 
-    if debug:
-        """
-        Debug mode for local testing
-        """
-        env.intrinsic_timesteps = 100 #default = 1e7
-        env.extrinsic_timesteps = 100 #default = 2e3
-        extrinsic_trials = 3
+    env.intrinsic_timesteps = intrinsic_timesteps #default = 1e7
+    env.extrinsic_timesteps = extrinsic_timesteps #default = 2e3
+    extrinsic_trials = 3
 
     ##########################################################
     ##########################################################

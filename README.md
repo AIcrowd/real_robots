@@ -16,7 +16,6 @@ import numpy as np
 import time
 import real_robots
 
-
 class RandomPolicy:
     def __init__(self, action_space):
         self.action_space = action_space
@@ -37,6 +36,35 @@ for t in range(40):
     a = pi.act()
     observation, reward, done, info = env.step(a)
     print(t, reward)
+```
+
+## Local Evaluation
+
+```python
+import gym
+import numpy as np
+import real_robots
+
+class RandomPolicy:
+    def __init__(self, action_space):
+        self.action_space = action_space
+        self.action = np.zeros(action_space.shape[0])
+        self.action += -np.pi*0.5
+
+    def step(self, observation, reward, done):
+        self.action += 0.4*np.pi*np.random.randn(self.action_space.shape[0])
+        return self.action
+
+real_robots.evaluate(
+                RandomPolicy,
+                intrinsic_timesteps=100,
+                extrinsic_timesteps=100,
+                extrinsic_trials=2,
+                goals_dataset_path="./goals.npy.npz",
+            )
+#  NOTE : You can find a sample goals.npy.npz file at
+#
+#  https://aicrowd-production.s3.eu-central-1.amazonaws.com/misc/REAL-Robots/goals.npy.npz
 ```
 
 -   Free software: MIT license
