@@ -94,7 +94,7 @@ def evaluate(Controller,
                         total=intrinsic_timesteps,
                         desc="Intrinsic Phase",
                         unit="steps ",
-                        leave=False
+                        leave=True
                         )
     intrinsic_phase_progress_bar.write("######################################################")
     intrinsic_phase_progress_bar.write("# Intrinsic Phase Initiated")
@@ -117,7 +117,7 @@ def evaluate(Controller,
 
     extrinsic_phase_progress_bar = tqdm(
                                         total = extrinsic_trials,
-                                        desc = "Extrinsic Phase Trials",
+                                        desc = "Extrinsic Phase",
                                         unit = "trials ",
                                         leave=True
                                         )
@@ -130,13 +130,23 @@ def evaluate(Controller,
         observation = env.reset()
         reward = 0
         done = False
-        extrinsic_phase_progress_bar.update(1)
         env.set_goal()
+
+        extrinsic_trial_progress_bar = tqdm(
+                                            total = extrinsic_timesteps,
+                                            desc = "Extrinsic Trial # {}".format(k),
+                                            unit = "steps ",
+                                            leave = False
+                                            )
 
         while not done:
             action = controller.step(observation, reward, done)
             observation, reward, done, _ = env.step(action)
+            extrinsic_trial_progress_bar.update(1)
 
+        extrinsic_trial_progress_bar.close()
+
+        extrinsic_phase_progress_bar.update(1)
         add_scores(*env.evaluateGoal())
         extrinsic_phase_progress_bar.set_postfix(
                         build_score_object(
