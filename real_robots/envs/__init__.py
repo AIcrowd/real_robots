@@ -1,1 +1,1 @@
-from real_robots.envs.env import REALRobotEnv, REALRobotEnvSingleObj, Goal
+from .env import REALRobotEnv, REALRobotEnvSingleObj, Goal

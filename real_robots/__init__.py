@@ -17,8 +17,7 @@ register(id='REALRobotSingleObj-v0',
     entry_point='real_robots.envs:REALRobotEnvSingleObj',
 )
 
-from real_robots.envs import env as real_robot_env
-from real_robots.evaluate import evaluate
+from .evaluate import evaluate
 
 
 def getPackageDataPath():

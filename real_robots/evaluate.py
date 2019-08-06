@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import gym
-from real_robots.envs import Goal
+from .envs import Goal
 import numpy as np
 
 from tqdm.auto import tqdm
