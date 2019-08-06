@@ -91,6 +91,8 @@ print(result)
 # {'score_2D': 0.6949320310408206, 'score_2.5D': 0, 'score_3D': 0, 'score_total': 0.23164401034694018}
 ```
 
+See also our [FAQ](https://github.com/AIcrowd/real_robots/blob/master/FAQ.md).  
+
 -   Free software: MIT license
 
 ## Features
