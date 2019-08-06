@@ -2,7 +2,7 @@ from pybullet_envs.scene_abstract import SingleRobotEmptyScene
 from pybullet_envs.env_bases import MJCFBaseBulletEnv
 import numpy as np
 import pybullet
-import gym 
+import gym
 
 import real_robots
 
@@ -136,10 +136,10 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                 w = 1
 
             objScore = self.extrinsicFormula(p_goal, p, a_goal, a, w) 
-            print("Object: {} Score: {:.4f}".format(obj,objScore))
+            # print("Object: {} Score: {:.4f}".format(obj,objScore))
             score += objScore / n_obj
 
-        print("Goal score: {:.4f}".format(score))
+        # print("Goal score: {:.4f}".format(score))
         return self.goal.challenge, score
 
         

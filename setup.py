@@ -20,7 +20,7 @@ def get_all_data_files(directory='./real_robots/data/'):
     return ret
 
 
-requirements = ['Click>=6.0', 'gym', 'pybullet', 'numpy']
+requirements = ['Click>=6.0', 'gym', 'pybullet', 'numpy', 'tqdm']
 
 setup_requirements = ['pytest-runner', ]
 
