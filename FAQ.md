@@ -1,6 +1,6 @@
 # FAQ
 
-* Is this competition really so cool?
+* Is this competition really so cool?  
 Yes.
 
 ## Known issues
