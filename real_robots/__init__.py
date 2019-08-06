@@ -9,11 +9,11 @@ __version__ = '0.1.0'
 from gym.envs.registration import register
 
 register(id='REALComp-v0',
-    entry_point='real_robots.envs:REALCompEnv',
+    entry_point='real_robots.envs:REALRobotEnv',
 )
 
 register(id='REALCompSingleObj-v0',
-    entry_point='real_robots.envs:REALCompEnvSingleObj',
+    entry_point='real_robots.envs:REALRobotEnvSingleObj',
 )
 
-from realcomp.envs import realcomp_env
+from real_robots.envs import env as real_robot_env
