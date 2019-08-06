@@ -40,7 +40,7 @@ for t in range(40):
 
 ## Local Evaluation
 
-````python
+```python
 import gym
 import numpy as np
 import real_robots
@@ -81,4 +81,3 @@ print(result)
 -   Francesco Mannella
 -   Emilio Cartoni
 -   Sharada Mohanty
-````
