@@ -24,11 +24,10 @@ def getPackageDataPath():
     import real_robots
     return os.path.join(
                 real_robots.__path__[0],
-                "data",
-                "kuka_gripper_description"
+                "data"
             )
 
-def copy_over_data_into_pybullet():
+def copy_over_data_into_pybullet(force_copy=False):
     """
     If the package specific data has not already 
     been copied over into pybullet_data, then
@@ -37,9 +36,12 @@ def copy_over_data_into_pybullet():
     import pybullet_data
 
     pybullet_data_path = pybullet_data.getDataPath()
-    if "kuka_gripper_description" not in os.listdir(pybullet_data_path):
+    is_data_absent = "kuka_gripper_description" not in os.listdir(pybullet_data_path)
+    if force_copy or is_data_absent:
         import shutil
-        source_data_path = getPackageDataPath()
+        source_data_path = os.path.join(
+                                getPackageDataPath(),
+                                "kuka_gripper_description")
         target_data_path = os.path.join(
                                 pybullet_data_path,
                                 "kuka_gripper_description")

@@ -4,6 +4,8 @@ import numpy as np
 import pybullet
 import gym 
 
+import real_robots
+
 from .robot import Kuka
 import sys, os
 
@@ -49,6 +51,12 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         self.goal = Goal(retina=self.observation_space.spaces[
             self.robot.ObsSpaces.GOAL].sample()*0)
+        
+        # Set default goals dataset path
+        self.goals_dataset_path = os.path.join( 
+                                    real_robots.getPackageDataPath(),
+                                    "data",
+                                    "goals_dataset.npy.npz")
         self.goals = None
         self.goal_idx = -1
    
@@ -71,13 +79,14 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         cam = EyeCamera(eye_pos, target_pos)
         self.eyes[name] = cam
 
+    def set_goals_dataset_path(self, path):
+        assert os.path.exists(path), "Non existent path {} provided".format(path)
+        self.goals_dataset_path = path
+        
     def set_goal(self):
         if self.goals is None:
             self.goals = list(np.load(
-                    os.path.join( 
-                        os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-                        "task",
-                        "goals_dataset.npy.npz"), allow_pickle=True).items())[0][1]
+                    self.goals_dataset_path, allow_pickle=True).items())[0][1]
             self.goal_idx = 0
         self.goal = self.goals[self.goal_idx]
         
