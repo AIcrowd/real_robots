@@ -1,7 +1,6 @@
 import gym
 import numpy as np
 import time
-import real_robots
 
 
 class RandomPolicy:
@@ -14,6 +13,7 @@ class RandomPolicy:
     def act(self):
         self.action += 0.4*np.pi*np.random.randn(self.action_space.shape[0])
         return self.action
+
 
 env = gym.make("REALRobot-v0")
 pi = RandomPolicy(env.action_space)

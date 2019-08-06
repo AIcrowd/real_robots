@@ -9,13 +9,15 @@ __version__ = '0.1.5'
 import os
 from gym.envs.registration import register
 
-from .evaluate import evaluate
+from .evaluate import evaluate  # noqa F401
 
-register(id='REALRobot-v0',
+register(
+    id='REALRobot-v0',
     entry_point='real_robots.envs:REALRobotEnv',
 )
 
-register(id='REALRobotSingleObj-v0',
+register(
+    id='REALRobotSingleObj-v0',
     entry_point='real_robots.envs:REALRobotEnvSingleObj',
 )
 
@@ -27,16 +29,18 @@ def getPackageDataPath():
                 "data"
             )
 
+
 def copy_over_data_into_pybullet(force_copy=False):
     """
-    If the package specific data has not already 
+    If the package specific data has not already
     been copied over into pybullet_data, then
     copy them over.
     """
     import pybullet_data
 
     pybullet_data_path = pybullet_data.getDataPath()
-    is_data_absent = "kuka_gripper_description" not in os.listdir(pybullet_data_path)
+    is_data_absent = \
+        "kuka_gripper_description" not in os.listdir(pybullet_data_path)
     if force_copy or is_data_absent:
         import shutil
         source_data_path = os.path.join(
@@ -49,4 +53,6 @@ def copy_over_data_into_pybullet(force_copy=False):
             "[REALRobot] Copying over data into pybullet_data_path."
             "This is a one time operation.")
         shutil.copytree(source_data_path, target_data_path)
+
+
 copy_over_data_into_pybullet()
