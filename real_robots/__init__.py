@@ -20,7 +20,7 @@ register(id='REALRobotSingleObj-v0',
 from real_robots.envs import env as real_robot_env
 
 
-def getDataPath():
+def getPackageDataPath():
     import real_robots
     return os.path.join(
                 real_robots.__path__[0],
@@ -39,7 +39,7 @@ def copy_over_data_into_pybullet():
     pybullet_data_path = pybullet_data.getDataPath()
     if "kuka_gripper_description" not in os.listdir(pybullet_data_path):
         import shutil
-        source_data_path = getDataPath()
+        source_data_path = getPackageDataPath()
         target_data_path = os.path.join(
                                 pybullet_data_path,
                                 "kuka_gripper_description")
