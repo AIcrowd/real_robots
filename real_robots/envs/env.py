@@ -2,12 +2,11 @@ from pybullet_envs.scene_abstract import SingleRobotEmptyScene
 from pybullet_envs.env_bases import MJCFBaseBulletEnv
 import numpy as np
 import pybullet
-import gym
 
 import real_robots
 
 from .robot import Kuka
-import sys, os
+import os
 
 def DefaultRewardFunc(observation):
     return 0
