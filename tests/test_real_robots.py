@@ -52,7 +52,7 @@ def test_goals():
     assert(obs['goal'].min() == 0 and obs['goal'].max() == 0)
 
     # Setting the goal path should not trigger the extrinsic phase - (Issue 12)
-    env.set_goals_dataset_path('test_goals.npy.npz')
+    env.set_goals_dataset_path('goals.npy.npz')
     assert(env.goal_idx == -1)
 
     # This should trigger the first goal
@@ -60,7 +60,7 @@ def test_goals():
     obs, _, _, _ = env.step(np.zeros(9))
     assert(not(obs['goal'].min() == 0 and obs['goal'].max() == 0))
     # We check one of the pixels to ensure this is the first goal
-    assert(obs['goal'][126, 90, 2] == 102)
+    assert(obs['goal'][111, 131, 0] == 118)
     assert(env.goal_idx == 0)
 
     # This should trigger the first goal
@@ -68,5 +68,5 @@ def test_goals():
     obs, _, _, _ = env.step(np.zeros(9))
     assert(not(obs['goal'].min() == 0 and obs['goal'].max() == 0))
     # We check one of the pixels to ensure this is the second goal
-    assert(obs['goal'][126, 90, 2] == 142)
+    assert(obs['goal'][111, 131, 0] == 154)
     assert(env.goal_idx == 1)

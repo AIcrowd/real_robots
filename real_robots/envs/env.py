@@ -87,7 +87,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         cam = EyeCamera(eye_pos, target_pos)
         self.eyes[name] = cam
 
-
     def load_goals(self):
         self.goals = list(np.load(
                 self.goals_dataset_path, allow_pickle=True).items())[0][1]
@@ -95,7 +94,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
     def set_goals_dataset_path(self, path):
         assert os.path.exists(path), "Non existent path {}".format(path)
         self.goals_dataset_path = path
-
 
     def set_goal(self):
         if self.goals is None:
@@ -107,8 +105,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         for obj in self.goal.initial_state.keys():
             self.robot.object_bodies[obj].reset_position(
                                         self.goal.initial_state[obj][:3])
-
-
 
     def extrinsicFormula(self, p_goal, p, a_goal, a, w=1):
         pos_dist = np.linalg.norm(p_goal-p)
@@ -153,7 +149,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                                      timestep=0.005, frame_skip=1)
 
     def reset(self):
-
         super(REALRobotEnv, self).reset()
         self._p.setGravity(0., 0., -9.81)
         self.camera._p = self._p
@@ -169,13 +164,13 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         return self.get_observation()
 
     def render(self, mode='human', close=False):
-            if mode == "human":
-                    self.isRender = True
-            if mode != "rgb_array":
-                    return np.array([])
+        if mode == "human":
+            self.isRender = True
+        if mode != "rgb_array":
+            return np.array([])
 
-            rgb_array = self.envCamera.render(self._p)
-            return rgb_array
+        rgb_array = self.envCamera.render(self._p)
+        return rgb_array
 
     def get_part_pos(self, name):
         # print(self.robot.parts.keys())
