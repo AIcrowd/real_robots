@@ -7,6 +7,7 @@ from click.testing import CliRunner
 
 import real_robots  # noqa
 from real_robots import cli
+from real_robots import generate_goals
 import gym
 import numpy as np
 from real_robots.policy import Policy
@@ -18,6 +19,17 @@ def test_command_line_interface():
     result = runner.invoke(cli.demo)
     assert result.exit_code == 0
     help_result = runner.invoke(cli.demo, ['--help'])
+    assert help_result.exit_code == 0
+    assert '--help  Show this message and exit.' in help_result.output
+
+
+def test_goal_generation():
+    """Test goal generation."""
+    runner = CliRunner()
+    result = runner.invoke(generate_goals.main, 
+                           ['32', '0', '0', '0', '0', '0', '0', '1'])
+    assert result.exit_code == 0
+    help_result = runner.invoke(generate_goals.main, ['--help'])
     assert help_result.exit_code == 0
     assert '--help  Show this message and exit.' in help_result.output
 

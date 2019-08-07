@@ -44,6 +44,7 @@ setup(
     entry_points={
         'console_scripts': [
             'real-robots-demo=real_robots.cli:demo',
+            'real-robots-generate-goals=real_robots.generate_goals:main',
         ],
     },
     install_requires=requirements,
