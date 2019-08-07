@@ -87,24 +87,28 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         cam = EyeCamera(eye_pos, target_pos)
         self.eyes[name] = cam
 
-    def set_goals_dataset_path(self, path):
-        assert os.path.exists(path), "Non existent path {}".format(path)
-        self.goals_dataset_path = path
+
+    def load_goals(self):
         self.goals = list(np.load(
                 self.goals_dataset_path, allow_pickle=True).items())[0][1]
 
+    def set_goals_dataset_path(self, path):
+        assert os.path.exists(path), "Non existent path {}".format(path)
+        self.goals_dataset_path = path
+
+
     def set_goal(self):
         if self.goals is None:
-            self.goals = list(np.load(
-                    self.goals_dataset_path, allow_pickle=True).items())[0][1]
-            self.goal_idx = 0
+            self.load_goals()
+
+        self.goal_idx += 1
         self.goal = self.goals[self.goal_idx]
 
         for obj in self.goal.initial_state.keys():
             self.robot.object_bodies[obj].reset_position(
                                         self.goal.initial_state[obj][:3])
 
-        self.goal_idx += 1
+
 
     def extrinsicFormula(self, p_goal, p, a_goal, a, w=1):
         pos_dist = np.linalg.norm(p_goal-p)
