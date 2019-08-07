@@ -6,9 +6,10 @@ import click
 import numpy as np
 import gym
 from tqdm.auto import trange
+from real_robots.policy import Policy
 
 
-class RandomPolicy:
+class RandomPolicy(Policy):
     def __init__(self, action_space):
         self.action_space = action_space
         self.action = np.zeros(action_space.shape[0])

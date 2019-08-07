@@ -64,8 +64,9 @@ for t in range(40):
 import gym
 import numpy as np
 import real_robots
+from real_robots.policy import Policy
 
-class RandomPolicy:
+class RandomPolicy(Policy):
     def __init__(self, action_space):
         self.action_space = action_space
         self.action = np.zeros(action_space.shape[0])

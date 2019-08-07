@@ -104,6 +104,7 @@ def evaluate(Controller,
 
         # intrinsic phase
         steps = 0
+        controller.setIntrisicPhase()
         while not done:
             # Call your controller to chose action
             action = controller.step(observation, reward, done)
@@ -138,12 +139,13 @@ def evaluate(Controller,
                     "######################################################"
                 )
 
+    controller.setExtrinsicPhase()
     for k in range(extrinsic_trials):
         observation = env.reset()
         reward = 0
         done = False
         env.set_goal()
-
+        controller.startExtrinsicTrial()
         extrinsic_trial_progress_bar = \
             tqdm(
                 total=extrinsic_timesteps,
@@ -156,6 +158,8 @@ def evaluate(Controller,
             action = controller.step(observation, reward, done)
             observation, reward, done, _ = env.step(action)
             extrinsic_trial_progress_bar.update(1)
+
+        controller.endExtrinsicTrial()
 
         extrinsic_trial_progress_bar.close()
 

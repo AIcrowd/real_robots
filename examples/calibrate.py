@@ -1,6 +1,7 @@
 import gym
 import time
 import numpy as np
+import real_robots
 
 env = gym.make("REALRobot-v0")
 env.render("human")
@@ -54,3 +55,4 @@ for t in range(len(rollout.T)):
     state, r, done, info_ = env.step(action)
 
     time.sleep(1/200)
+    print("{}/{}".format(t,stime))

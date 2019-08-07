@@ -70,3 +70,33 @@ def test_goals():
     # We check one of the pixels to ensure this is the second goal
     assert(obs['goal'][111, 131, 0] == 154)
     assert(env.goal_idx == 1)
+
+def test_local_evaluation():
+    import gym
+    import numpy as np
+    import real_robots
+    from real_robots.policy import Policy
+
+    class RandomPolicy(Policy):
+        def __init__(self, action_space):
+            self.action_space = action_space
+            self.action = np.zeros(action_space.shape[0])
+            self.action += -np.pi*0.5
+
+        def step(self, observation, reward, done):
+            self.action += 0.4*np.pi*np.random.randn(self.action_space.shape[0])
+            return self.action
+
+    result = real_robots.evaluate(
+                    RandomPolicy,
+                    intrinsic_timesteps=40,
+                    extrinsic_timesteps=40,
+                    extrinsic_trials=5,
+                    visualize=True,
+                    goals_dataset_path="./goals.npy.npz",
+                )
+    print(result)
+
+
+
+
