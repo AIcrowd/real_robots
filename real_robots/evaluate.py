@@ -104,7 +104,8 @@ def evaluate(Controller,
 
         # intrinsic phase
         steps = 0
-        controller.setIntrisicPhase()
+        # Notify the controller that the intrinsic phase started
+        controller.start_intrinsic_phase()
         while not done:
             # Call your controller to chose action
             action = controller.step(observation, reward, done)
@@ -119,6 +120,8 @@ def evaluate(Controller,
         intrinsic_phase_progress_bar.write(
                     "######################################################"
                 )
+        # Notify the controller that the intrinsic phase ended
+        controller.end_intrinsic_phase()
     else:
         print("[WARNING] Skipping Intrinsic Phase as intrinsic_timesteps = 0 or False")  # noqa
 
@@ -139,13 +142,17 @@ def evaluate(Controller,
                     "######################################################"
                 )
 
-    controller.setExtrinsicPhase()
+    # Notify the controller that the extrinsic phase started
+    controller.start_extrinsic_phase()
     for k in range(extrinsic_trials):
         observation = env.reset()
         reward = 0
         done = False
         env.set_goal()
-        controller.startExtrinsicTrial()
+
+        # Notify the controller that an extrinsic trial started
+        controller.start_extrinsic_trial()
+
         extrinsic_trial_progress_bar = \
             tqdm(
                 total=extrinsic_timesteps,
@@ -159,7 +166,8 @@ def evaluate(Controller,
             observation, reward, done, _ = env.step(action)
             extrinsic_trial_progress_bar.update(1)
 
-        controller.endExtrinsicTrial()
+        # Notify the controller that an extrinsic trial ended
+        controller.end_extrinsic_trial()
 
         extrinsic_trial_progress_bar.close()
 
@@ -179,4 +187,8 @@ def evaluate(Controller,
                     "######################################################"
                 )
     extrinsic_phase_progress_bar.write(str(build_score_object(scores)))
+
+    # Notify the controller that the extrinsic phase ended
+    controller.end_extrinsic_trial()
+
     return build_score_object(scores)

@@ -10,7 +10,7 @@ from real_robots import cli
 from real_robots import generate_goals
 import gym
 import numpy as np
-from real_robots.policy import Policy
+from real_robots.policy import BasePolicy
 
 
 def test_command_line_interface():
@@ -68,7 +68,7 @@ def test_goals():
 
 
 def test_local_evaluation():
-    class RandomPolicy(Policy):
+    class RandomPolicy(BasePolicy):
         def __init__(self, action_space):
             self.action_space = action_space
             self.action = np.zeros(action_space.shape[0])

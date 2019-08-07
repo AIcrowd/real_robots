@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Policy:
+class BasePolicy:
 
     def step(self, observation, reward, done):
         """
@@ -31,9 +31,14 @@ class Policy:
                 - an extrinsic trial ends
             otherwise it will always be false.
         """
-        return np.zeros(9)
+        raise NotImplementedError(
+            "the step function has not been implemented. "
+            "Please derive your custom controller from this class "
+            "and implement atleast the step function. And optionally "
+            "the other available interfaces."
+        )
 
-    def setIntrisicPhase(self):
+    def start_intrinsic_phase(self):
         """
         The evaluator will call this function to signal the start of the
         Intrinsic Phase.
@@ -41,7 +46,15 @@ class Policy:
         """
         pass
 
-    def setExtrinsicPhase(self):
+    def end_intrinsic_phase(self):
+        """
+        The evaluator will call this function to signal the end of the
+        Intrinsic Phase.
+        """
+        pass
+
+
+    def start_extrinsic_phase(self):
         """
         The evaluator will call this function to signal the start of the
         Extrinsic Phase.
@@ -49,7 +62,14 @@ class Policy:
         """
         pass
 
-    def startExtrinsicTrial(self):
+    def end_extrinsic_phase(self):
+        """
+        The evaluator will call this function to signal the end of the
+        Extrinsic Phase.
+        """
+        pass
+
+    def start_extrinsic_trial(self):
         """
         The evaluator will call this function to signal the start of each
         extrinsic trial.
@@ -57,7 +77,7 @@ class Policy:
         """
         pass
 
-    def endExtrinsicTrial(self):
+    def end_extrinsic_trial(self):
         """
         The evaluator will call this function to signal the end of each
         extrinsic trial.

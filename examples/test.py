@@ -1,9 +1,9 @@
 import gym
 import numpy as np
 import time
-from real_robots.policy import Policy
+from real_robots.policy import BasePolicy
 
-class RandomPolicy(Policy):
+class RandomPolicy(BasePolicy):
 
     def __init__(self, action_space):
         self.action_space = action_space

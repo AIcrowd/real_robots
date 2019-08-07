@@ -34,8 +34,9 @@ import gym
 import numpy as np
 import time
 import real_robots
+from real_robots.policy import BasePolicy
 
-class RandomPolicy:
+class RandomPolicy(BasePolicy):
     def __init__(self, action_space):
         self.action_space = action_space
         self.action = np.zeros(action_space.shape[0])
@@ -64,9 +65,9 @@ for t in range(40):
 import gym
 import numpy as np
 import real_robots
-from real_robots.policy import Policy
+from real_robots.policy import BasePolicy
 
-class RandomPolicy(Policy):
+class RandomPolicy(BasePolicy):
     def __init__(self, action_space):
         self.action_space = action_space
         self.action = np.zeros(action_space.shape[0])
@@ -91,7 +92,7 @@ print(result)
 # {'score_2D': 0.6949320310408206, 'score_2.5D': 0, 'score_3D': 0, 'score_total': 0.23164401034694018}
 ```
 
-See also our [FAQ](https://github.com/AIcrowd/real_robots/blob/master/FAQ.md).  
+See also our [FAQ](https://github.com/AIcrowd/real_robots/blob/master/FAQ.md).
 
 -   Free software: MIT license
 
