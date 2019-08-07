@@ -92,7 +92,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         self.goals_dataset_path = path
         self.goals = list(np.load(
                 self.goals_dataset_path, allow_pickle=True).items())[0][1]
-        self.goal_idx = 0
 
     def set_goal(self):
         if self.goals is None:
