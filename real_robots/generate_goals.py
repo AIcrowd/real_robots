@@ -387,15 +387,30 @@ def generateGoal3D(env):
 
 
 @click.command()
-@click.argument('seed', type=int)
-@click.argument('n1', type=int)
-@click.argument('n2', type=int)
-@click.argument('n3', type=int)
-@click.argument('n4', type=int)
-@click.argument('n5', type=int)
-@click.argument('n6', type=int)
-@click.argument('n7', type=int)
-def main(seed, n1, n2, n3, n4, n5, n6, n7):
+@click.option('--seed', type=int,
+              help='Generate goals using this SEED for numpy.random')
+@click.option('--n1', type=int, default=0,
+              help='# of 2D Goals with 1 moving object')
+@click.option('--n2', type=int, default=0,
+              help='# of 2D Goals with 2 moving objects')
+@click.option('--n3', type=int, default=0,
+              help='# of 2D Goals with 3 moving objects')
+@click.option('--n4', type=int, default=0,
+              help='# of 2.5D Goals with 1 moving object')
+@click.option('--n5', type=int, default=0,
+              help='# of 2.5D Goals with 2 moving objects')
+@click.option('--n6', type=int, default=0,
+              help='# of 2.5D Goals with 3 moving objects')
+@click.option('--n7', type=int, default=0,
+              help='# of 3D Goals')
+def main(seed=None, n1=0, n2=0, n3=0, n4=0, n5=0, n6=0, n7=0):
+    """
+        Generates the specified number of goals
+        and saves them in a file.\n
+        The file is called allgoals{}-{}-{}-{}-{}-{}-{}-{}.npy
+        where enclosed brackets are replaced with the
+        supplied options (seed, n1...n7) or 0.
+    """
     np.random.seed(seed)
     allgoals = []
     env = gym.make('REALRobot-v0')
