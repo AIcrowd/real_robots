@@ -26,7 +26,7 @@ def test_command_line_interface():
 def test_goal_generation():
     """Test goal generation."""
     runner = CliRunner()
-    result = runner.invoke(generate_goals.main, 
+    result = runner.invoke(generate_goals.main,
                            ['32', '0', '0', '0', '0', '0', '0', '1'])
     assert result.exit_code == 0
     help_result = runner.invoke(generate_goals.main, ['--help'])

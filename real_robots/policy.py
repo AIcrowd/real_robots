@@ -1,6 +1,3 @@
-import numpy as np
-
-
 class BasePolicy:
 
     def step(self, observation, reward, done):
@@ -52,7 +49,6 @@ class BasePolicy:
         Intrinsic Phase.
         """
         pass
-
 
     def start_extrinsic_phase(self):
         """

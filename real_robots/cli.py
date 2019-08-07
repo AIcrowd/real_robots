@@ -8,6 +8,7 @@ import gym
 from tqdm.auto import trange
 from real_robots.policy import BasePolicy
 
+
 class RandomPolicy(BasePolicy):
     def __init__(self, action_space):
         self.action_space = action_space

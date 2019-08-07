@@ -3,6 +3,7 @@ import numpy as np
 import time
 from real_robots.policy import BasePolicy
 
+
 class RandomPolicy(BasePolicy):
 
     def __init__(self, action_space):
