@@ -3,30 +3,13 @@
 
 """Tests for `real_robots` package."""
 
-import pytest
-
 from click.testing import CliRunner
 
 import real_robots  # noqa
 from real_robots import cli
 import gym
 import numpy as np
-
-
-@pytest.fixture
-def response():
-    """Sample pytest fixture.
-
-    See more at: http://doc.pytest.org/en/latest/fixture.html
-    """
-    # import requests
-    # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
-
-
-def test_content(response):
-    """Sample pytest test function with the pytest fixture as an argument."""
-    # from bs4 import BeautifulSoup
-    # assert 'GitHub' in BeautifulSoup(response.content).title.string
+from real_robots.policy import Policy
 
 
 def test_command_line_interface():
@@ -71,12 +54,8 @@ def test_goals():
     assert(obs['goal'][111, 131, 0] == 154)
     assert(env.goal_idx == 1)
 
-def test_local_evaluation():
-    import gym
-    import numpy as np
-    import real_robots
-    from real_robots.policy import Policy
 
+def test_local_evaluation():
     class RandomPolicy(Policy):
         def __init__(self, action_space):
             self.action_space = action_space
@@ -84,7 +63,8 @@ def test_local_evaluation():
             self.action += -np.pi*0.5
 
         def step(self, observation, reward, done):
-            self.action += 0.4*np.pi*np.random.randn(self.action_space.shape[0])
+            self.action += 0.4*np.pi*np.random.randn(
+                                self.action_space.shape[0])
             return self.action
 
     result = real_robots.evaluate(
@@ -96,7 +76,3 @@ def test_local_evaluation():
                     goals_dataset_path="./goals.npy.npz",
                 )
     print(result)
-
-
-
-
