@@ -6,7 +6,6 @@ import click
 import numpy as np
 from real_robots.envs import Goal
 import gym
-import matplotlib.pyplot as plt
 import math
 from sklearn.metrics import pairwise_distances
 
@@ -214,7 +213,7 @@ def checkRepeatability(env, goals):
         p0 = np.vstack([goal.initial_state[o] for o in objects])
         p1 = np.vstack([pos[o] for o in objects])
         diffPos = np.linalg.norm(p1[:, :3]-p0[:, :3])
-        diffOr = np.linalg.norm(p1[:, 3:]-p0[:, 3:])
+        diffOr = min(np.linalg.norm(p1[:, 3:]-p0[:, 3:]),np.linalg.norm(p1[:, 3:]+p0[:, 3:]))
 
         print("Replicated diffPos:{} diffOr:{}".format(diffPos, diffOr))
         if failed:
@@ -442,16 +441,6 @@ def main(seed=None, n1=0, n2=0, n3=0, n4=0, n5=0, n6=0, n7=0):
             .format(seed, n1, n2, n3, n4, n5, n6, n7), allgoals)
 
     # checkRepeatability(env, allgoals)
-
-    # WARNING: If true, opens a lots of windows...
-    # each window displays one of the generated goals
-    if False:
-        for goal in allgoals[:]:
-            fig, axes = plt.subplots(1, 2)
-            axes[0].imshow(goal.retina_before)
-            axes[1].imshow(goal.retina)
-            fig.suptitle(goal.challenge+str(goal.subtype))
-        plt.show()
 
 
 if __name__ == "__main__":
