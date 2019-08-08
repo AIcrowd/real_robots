@@ -2,6 +2,7 @@
 
 import gym
 from .envs import Goal  # noqa F401
+from .policy import BasePolicy
 import numpy as np
 
 from tqdm.auto import tqdm
@@ -64,6 +65,16 @@ def evaluate(Controller,
 
     if visualize:
         env.render('human')
+
+    if not issubclass(Controller, BasePolicy):
+        raise Exception(
+                "Supplied Controller is not a Sub-Class of "
+                "real_robots.policy.BasePolicy . Please ensure that "
+                "the supplied controller class is derived from "
+                "real_robots.policy.BasePolicy , as described in the "
+                "example here at : "
+                "https://github.com/AIcrowd/real_robots#usage"
+            )
 
     controller = Controller(env.action_space)
 
