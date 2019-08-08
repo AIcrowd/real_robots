@@ -27,11 +27,18 @@ def test_goal_generation():
     """Test goal generation."""
     runner = CliRunner()
     result = runner.invoke(generate_goals.main,
-                           ['32', '0', '0', '0', '0', '0', '0', '1'])
+                           ['--seed', '32',
+                            '--n1', '0',
+                            '--n2', '0',
+                            '--n3', '0',
+                            '--n4', '0',
+                            '--n5', '0',
+                            '--n6', '0',
+                            '--n7', '1'])
     assert result.exit_code == 0
     help_result = runner.invoke(generate_goals.main, ['--help'])
     assert help_result.exit_code == 0
-    assert '--help  Show this message and exit.' in help_result.output
+    assert '--help          Show this message and exit.' in help_result.output
 
 
 def test_goals():
