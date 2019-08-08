@@ -7,9 +7,13 @@ import numpy as np
 from real_robots.envs import Goal
 import gym
 import math
-from sklearn.metrics import pairwise_distances
 
 basePosition = None
+
+
+def pairwise_distances(a):
+    b = a.reshape(a.shape[0], 1, a.shape[1])
+    return np.sqrt(np.einsum('ijk, ijk->ij', a-b, a-b))
 
 
 def runEnv(env, max_t=1000):
@@ -213,7 +217,8 @@ def checkRepeatability(env, goals):
         p0 = np.vstack([goal.initial_state[o] for o in objects])
         p1 = np.vstack([pos[o] for o in objects])
         diffPos = np.linalg.norm(p1[:, :3]-p0[:, :3])
-        diffOr = min(np.linalg.norm(p1[:, 3:]-p0[:, 3:]),np.linalg.norm(p1[:, 3:]+p0[:, 3:]))
+        diffOr = min(np.linalg.norm(p1[:, 3:]-p0[:, 3:]),
+                     np.linalg.norm(p1[:, 3:]+p0[:, 3:]))
 
         print("Replicated diffPos:{} diffOr:{}".format(diffPos, diffOr))
         if failed:
