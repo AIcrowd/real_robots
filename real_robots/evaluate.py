@@ -47,7 +47,7 @@ def evaluate(Controller,
         the evaluator to compute the `action` given observation, reward
         and done info
 
-    intrinsic_timesteps : int, bool
+    intrinsic_timesteps: int, bool
         Maximum number of timesteps in the Intrinsic phase.
         If set to False, then
     extrinsic_timesteps: int
@@ -72,7 +72,7 @@ def evaluate(Controller,
                 "real_robots.policy.BasePolicy . Please ensure that "
                 "the supplied controller class is derived from "
                 "real_robots.policy.BasePolicy , as described in the "
-                "example here at : "
+                "example here at: "
                 "https://github.com/AIcrowd/real_robots#usage"
             )
 
@@ -80,6 +80,46 @@ def evaluate(Controller,
 
     env.intrinsic_timesteps = intrinsic_timesteps  # default = 1e7
     env.extrinsic_timesteps = extrinsic_timesteps  # default = 2e3
+
+    # Setup Evaluation State
+    ##########################################################
+    """
+    State Transitions:
+    overall_state:
+        PENDING -> INTRINSIC_PHASE_IN_PROGRESS
+        INTRINSIC_PHASE_IN_PROGRESS -> INTRINSIC_PHASE_COMPLETE
+        INTRINSIC_PHASE_COMPLETE -> EXTRINSIC_PHASE_IN_PROGRESS
+        EXTRINSIC_PHASE_IN_PROGRESS -> EXTRINSIC_PHASE_COMPLETE
+        ERROR
+        EVALUATION_COMPLETE
+    intrinsic_phase_state:
+        PENDING
+        INTRINSIC_PHASE_IN_PROGRESS
+        INTRINSIC_PHASE_COMPLETE
+        INTRINSIC_PHASE_SKIPPED
+        INTRINSIC_PHASE_ERROR
+    extrinsic_phase_state:
+        PENDING
+        EXTRINSIC_PHASE_IN_PROGRESS
+        EXTRINSIC_PHASE_COMPLETE
+        EXTRINSIC_PHASE_ERROR
+    """
+    evaluation_state = {  # noqa
+        "state": "PENDING",
+        "max_intrinsic_timesteps": intrinsic_timesteps,
+        "max_extrinsic_timesteps": extrinsic_timesteps,
+        "current_intrinsic_timestep": 0,
+        "max_extrinsic_trials": extrinsic_trials,
+        "num_extrinsic_trials_complete": 0,
+        "progress_in_current_extrinsic_trial": 0,
+        "score": {
+            "score": 0,
+            "score_2D": 0,
+            "score_2.5D": 0,
+            "score_3D": 0,
+            "score_total": 0
+        }
+    }
 
     # Helper functions
     ##########################################################
