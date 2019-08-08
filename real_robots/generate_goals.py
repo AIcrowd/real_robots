@@ -7,9 +7,13 @@ import numpy as np
 from real_robots.envs import Goal
 import gym
 import math
-from sklearn.metrics import pairwise_distances
 
 basePosition = None
+
+
+def pairwise_distances(a):
+    b = a.reshape(a.shape[0], 1, a.shape[1])
+    return np.sqrt(np.einsum('ijk, ijk->ij', a-b, a-b))
 
 
 def runEnv(env, max_t=1000):
