@@ -77,7 +77,7 @@ class RandomPolicy(BasePolicy):
         self.action += 0.4*np.pi*np.random.randn(self.action_space.shape[0])
         return self.action
 
-result = real_robots.evaluate(
+result, detailed_scores = real_robots.evaluate(
                 RandomPolicy,
                 intrinsic_timesteps=40,
                 extrinsic_timesteps=40,
@@ -89,7 +89,9 @@ result = real_robots.evaluate(
 #
 #  https://aicrowd-production.s3.eu-central-1.amazonaws.com/misc/REAL-Robots/goals.npy.npz
 print(result)
-# {'score_2D': 0.6949320310408206, 'score_2.5D': 0, 'score_3D': 0, 'score_total': 0.23164401034694018}
+# {'score_total': 0.2327459533906755, 'score_2D': 0.6982378601720265, 'score_2.5D': 0, 'score_3D': 0}
+print(detailed_scores)
+# {'2D': [0.6646365565451159, 0.6632591441787807, 0.7569003923985664, 0.7167885964780916, 0.6896046112595778]}
 ```
 
 See also our [FAQ](https://github.com/AIcrowd/real_robots/blob/master/FAQ.md).

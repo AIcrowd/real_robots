@@ -242,4 +242,4 @@ def evaluate(Controller,
     # Notify the controller that the extrinsic phase ended
     controller.end_extrinsic_trial()
 
-    return build_score_object(scores)
+    return build_score_object(scores), scores
