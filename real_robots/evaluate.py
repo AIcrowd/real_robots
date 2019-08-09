@@ -157,6 +157,16 @@ class EvaluationService:
             self.scores[challenge] = [score]
 
     def run_intrinsic_phase(self):
+        try:
+            self._run_intrinsic_phase()
+        except Exception as e:
+            self.evaluation_state["state"] = "ERROR"
+            self.evaluation_state["intrinsic_phase_state"] = \
+                "INTRINSIC_PHASE_ERROR"
+            self.sync_evaluation_state()
+            raise e
+
+    def _run_intrinsic_phase(self):
         """
         Runs the intrinsic phase based on the evaluation params
         """
@@ -212,6 +222,8 @@ class EvaluationService:
             self.controller.end_intrinsic_phase()
         else:
             print("[WARNING] Skipping Intrinsic Phase as intrinsic_timesteps = 0 or False")  # noqa
+            self.evaluation_state["state"] = "INTRINSIC_PHASE_SKIPPED"
+            self.sync_evaluation_state()
 
     def run_extrinsic_trial(self, trial_number):
         observation = self.env.reset()
@@ -253,6 +265,16 @@ class EvaluationService:
         extrinsic_trial_progress_bar.close()
 
     def run_extrinsic_phase(self):
+        try:
+            self._run_extrinsic_phase()
+        except Exception as e:
+            self.evaluation_state["state"] = "ERROR"
+            self.evaluation_state["extrinsic_phase_state"] = \
+                "EXTRINSIC_PHASE_ERROR"
+            self.sync_evaluation_state()
+            raise e
+
+    def _run_extrinsic_phase(self):
         extrinsic_phase_progress_bar = tqdm(
                                             total=self.extrinsic_trials,
                                             desc="Extrinsic Phase",
