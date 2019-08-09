@@ -59,7 +59,6 @@ class EvaluationService:
         self.setup_aicrowd_helpers()
 
     def setup_aicrowd_helpers(self):
-        self.agent_events = aicrowd_api.events.AIcrowdEvents()
         self.oracle_events = aicrowd_api.events.AIcrowdEvents(with_oracle=True)
 
     def setup_evaluation_state(self):
@@ -258,7 +257,8 @@ class EvaluationService:
         self.add_scores(*self.env.evaluateGoal())
 
         # Change evaluation state to represent the transition
-        self.evaluation_state["num_extrinsic_trials_complete"] = trial_number
+        self.evaluation_state["num_extrinsic_trials_complete"] = \
+            trial_number + 1
         self.sync_evaluation_state()
         # Notify the controller that an extrinsic trial ended
         self.controller.end_extrinsic_trial()
@@ -359,5 +359,4 @@ def evaluate(Controller,
         )
     evaluation_service.run_intrinsic_phase()
     evaluation_service.run_extrinsic_phase()
-
     return evaluation_service.build_score_object(), evaluation_service.scores
