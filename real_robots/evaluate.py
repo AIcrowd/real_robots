@@ -6,6 +6,7 @@ from .policy import BasePolicy
 import numpy as np
 
 from tqdm.auto import tqdm
+import aicrowd_api
 
 """Local evaluation helper functions."""
 
@@ -55,6 +56,11 @@ class EvaluationService:
         self.setup_controller()
         self.setup_evaluation_state()
         self.setup_scores()
+        self.setup_aicrowd_helpers()
+
+    def setup_aicrowd_helpers(self):
+        self.agent_events = aicrowd_api.events.AIcrowdEvents()
+        self.oracle_events = aicrowd_api.events.AIcrowdEvents(with_oracle=True)
 
     def setup_evaluation_state(self):
         """
@@ -100,8 +106,21 @@ class EvaluationService:
         }
 
     def sync_evaluation_state(self):
-        # print(self.evaluation_state)
-        pass
+        """
+        Syncs the evaluation state with the evaluator
+        """
+        # Determine event type
+        event_type = self.oracle_events.AICROWD_EVENT_INFO
+        if self.evaluation_state["state"] == "ERROR":
+            event_type = self.oracle_events.AICROWD_EVENT_ERROR
+        elif self.evaluation_state["state"] == "EVALUATION_COMPLETE":
+            event_type = self.oracle_events.AICROWD_EVENT_SUCCESS
+
+        # Register event type
+        self.oracle_events.register_event(
+            event_type=event_type,
+            payload=self.evaluation_state
+        )
 
     def setup_gym_env(self):
         self.env = gym.make('REALRobot-v0')
@@ -271,6 +290,7 @@ class EvaluationService:
         self.evaluation_state["extrinsic_phase_state"] = \
             "EXTRINSIC_PHASE_COMPLETE"
         self.evaluation_state["state"] = "EXTRINSIC_PHASE_COMPLETE"
+        self.evaluation_state["state"] = "EVALUATION_COMPLETE"
         self.sync_evaluation_state()
         # Notify the controller that the extrinsic phase ended
         self.controller.end_extrinsic_trial()
