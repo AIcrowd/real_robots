@@ -106,4 +106,4 @@ See also our [FAQ](https://github.com/AIcrowd/real_robots/blob/master/FAQ.md).
 
 -   Francesco Mannella
 -   Emilio Cartoni
--   Sharada Mohanty
+-   **[Sharada Mohanty](https://twitter.com/MeMohanty)**
