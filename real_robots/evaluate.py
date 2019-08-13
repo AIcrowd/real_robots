@@ -48,7 +48,7 @@ class EvaluationService:
         self.intrinsic_timesteps = intrinsic_timesteps
         self.extrinsic_timesteps = extrinsic_timesteps
         self.extrinsic_trials = extrinsic_trials
-        self.visualize = True
+        self.visualize = visualize
         self.goals_dataset_path = goals_dataset_path
 
         # Start Setup
