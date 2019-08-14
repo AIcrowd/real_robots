@@ -59,7 +59,7 @@ class EvaluationService:
         self.setup_aicrowd_helpers()
 
     def setup_aicrowd_helpers(self):
-        self.oracle_events = aicrowd_api.events.AIcrowdEvents(with_oracle=True)
+        self.aicrowd_events = aicrowd_api.events.AIcrowdEvents()
 
     def setup_evaluation_state(self):
         """
@@ -109,14 +109,14 @@ class EvaluationService:
         Syncs the evaluation state with the evaluator
         """
         # Determine event type
-        event_type = self.oracle_events.AICROWD_EVENT_INFO
+        event_type = self.aicrowd_events.AICROWD_EVENT_INFO
         if self.evaluation_state["state"] == "ERROR":
-            event_type = self.oracle_events.AICROWD_EVENT_ERROR
+            event_type = self.aicrowd_events.AICROWD_EVENT_ERROR
         elif self.evaluation_state["state"] == "EVALUATION_COMPLETE":
-            event_type = self.oracle_events.AICROWD_EVENT_SUCCESS
+            event_type = self.aicrowd_events.AICROWD_EVENT_SUCCESS
 
         # Register event type
-        self.oracle_events.register_event(
+        self.aicrowd_events.register_event(
             event_type=event_type,
             payload=self.evaluation_state
         )
