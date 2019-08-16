@@ -95,7 +95,7 @@ class EvaluationService:
             "max_extrinsic_trials": self.extrinsic_trials,
             "num_extrinsic_trials_complete": 0,
             "progress_in_current_extrinsic_trial": 0,
-            "score": {
+            "evaluation_score": {
                 "score": 0,
                 "score_2D": 0,
                 "score_2.5D": 0,
@@ -337,7 +337,7 @@ class EvaluationService:
 
         score_object["score_total"] = total_score
         # Mark Changes in evaluation_state
-        self.evaluation_state["score"] = total_score
+        self.evaluation_state["evaluation_score"] = total_score
         self.sync_evaluation_state()
         return score_object
 
