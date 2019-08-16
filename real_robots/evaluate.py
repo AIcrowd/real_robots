@@ -316,11 +316,11 @@ class EvaluationService:
         self.evaluation_state["extrinsic_phase_state"] = \
             "EXTRINSIC_PHASE_COMPLETE"
         self.evaluation_state["state"] = "EXTRINSIC_PHASE_COMPLETE"
-        self.evaluationn_state["score"] = {
-            "score": self.evaluationn_state["evaluation_score"]["total_score"],
-            "score_secondary" : self.evaluationn_state["evaluation_score"]["score_2D"]  # noqa
+        self.evaluation_state["score"] = {
+            "score": self.evaluation_state["evaluation_score"]["score_total"],
+            "score_secondary" : self.evaluation_state["evaluation_score"]["score_2D"]  # noqa
         }
-        self.evaluation_state["meta"] = self.evaluationn_state["evaluation_score"]  # noqa
+        self.evaluation_state["meta"] = self.evaluation_state["evaluation_score"]  # noqa
         self.evaluation_state["state"] = "EVALUATION_COMPLETE"
         self.sync_evaluation_state()
         # Notify the controller that the extrinsic phase ended
@@ -346,7 +346,7 @@ class EvaluationService:
 
         score_object["score_total"] = total_score
         # Mark Changes in evaluation_state
-        self.evaluation_state["evaluation_score"] = total_score
+        self.evaluation_state["evaluation_score"] = score_object
         self.sync_evaluation_state()
         return score_object
 
