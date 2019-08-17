@@ -213,7 +213,8 @@ def checkRepeatability(env, goals):
         p0 = np.vstack([goal.initial_state[o] for o in objects])
         p1 = np.vstack([pos[o] for o in objects])
         diffPos = np.linalg.norm(p1[:, :3]-p0[:, :3])
-        diffOr = min(np.linalg.norm(p1[:, 3:]-p0[:, 3:]),np.linalg.norm(p1[:, 3:]+p0[:, 3:]))
+        diffOr = min(np.linalg.norm(p1[:, 3:]-p0[:, 3:]),
+                     np.linalg.norm(p1[:, 3:]+p0[:, 3:]))
 
         print("Replicated diffPos:{} diffOr:{}".format(diffPos, diffOr))
         if failed:
@@ -438,7 +439,7 @@ def main(seed=None, n1=0, n2=0, n3=0, n4=0, n5=0, n6=0, n7=0):
         allgoals += [generateGoal3D(env)]
 
     np.savez('allgoals{}-{}-{}-{}-{}-{}-{}-{}.npy'
-            .format(seed, n1, n2, n3, n4, n5, n6, n7), allgoals)
+             .format(seed, n1, n2, n3, n4, n5, n6, n7), allgoals)
 
     # checkRepeatability(env, allgoals)
 
