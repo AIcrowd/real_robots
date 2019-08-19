@@ -102,9 +102,9 @@ class EvaluationService:
                 "score_3D": 0,
                 "score_total": 0
             },
-            "score" : {
-                "score" : 0,
-                "score_secondary" : 0
+            "score": {
+                "score": 0,
+                "score_secondary": 0
             }
         }
 
