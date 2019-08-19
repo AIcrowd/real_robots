@@ -407,7 +407,7 @@ def main(seed=None, n1=0, n2=0, n3=0, n4=0, n5=0, n6=0, n7=0):
     """
         Generates the specified number of goals
         and saves them in a file.\n
-        The file is called allgoals{}-{}-{}-{}-{}-{}-{}-{}.npy
+        The file is called goals-s{}-{}-{}-{}-{}-{}-{}-{}.npy.npz
         where enclosed brackets are replaced with the
         supplied options (seed, n1...n7) or 0.
     """
@@ -438,8 +438,8 @@ def main(seed=None, n1=0, n2=0, n3=0, n4=0, n5=0, n6=0, n7=0):
     for _ in range(n7):
         allgoals += [generateGoal3D(env)]
 
-    np.savez('allgoals{}-{}-{}-{}-{}-{}-{}-{}.npy'
-             .format(seed, n1, n2, n3, n4, n5, n6, n7), allgoals)
+    np.savez_compressed('goals-s{}-{}-{}-{}-{}-{}-{}-{}.npy'
+                        .format(seed, n1, n2, n3, n4, n5, n6, n7), allgoals)
 
     # checkRepeatability(env, allgoals)
 
