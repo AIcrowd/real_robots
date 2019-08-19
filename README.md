@@ -100,7 +100,9 @@ See also our [FAQ](https://github.com/AIcrowd/real_robots/blob/master/FAQ.md).
 
 ## Features
 
--   TODO
+The REALRobot environment is a standard gym environment.  
+It includes a 7DoF kuka arm with a 2DoF gripper, a table with 3 objects on it and a camera looking at the table from the top. 
+For more info on the environment see [environment.md](https://github.com/AIcrowd/real_robots/blob/master/environment.md).
 
 ## Authors
 
