@@ -4,6 +4,7 @@ import gym
 from .envs import Goal  # noqa F401
 from .policy import BasePolicy
 import numpy as np
+import time
 
 from tqdm.auto import tqdm
 import aicrowd_api
@@ -120,10 +121,18 @@ class EvaluationService:
             event_type = self.aicrowd_events.AICROWD_EVENT_SUCCESS
 
         # Register event type
-        self.aicrowd_events.register_event(
-            event_type=event_type,
-            payload=self.evaluation_state
-        )
+        try:
+            self.aicrowd_events.register_event(
+                event_type=event_type,
+                payload=self.evaluation_state
+            )
+        except:
+            # If evaluation is successful, better to try till overall timeout is reached
+            if self.evaluation_state["state"] == "EVALUATION_COMPLETE":
+                print("Evaluation succcessful but cant communicate to sourcerer, retrying...")
+                time.sleep(10)
+                self.sync_evaluation_state()
+            pass
 
     def setup_gym_env(self):
         self.env = gym.make('REALRobot-v0')
