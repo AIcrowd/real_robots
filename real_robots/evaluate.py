@@ -243,6 +243,9 @@ class EvaluationService:
         done = False
         self.env.set_goal()
 
+        observation['goal'] = self.env.goal.retina
+        assert (observation['goal'] == self.env.goal.retina).all(), "obs['goal'] is incorrect right after env reset"
+
         # Notify the controller that an extrinsic trial started
         self.controller.start_extrinsic_trial()
 
