@@ -4,7 +4,10 @@ import gym
 from .envs import Goal  # noqa F401
 from .policy import BasePolicy
 import numpy as np
+import json
 import time
+import random
+
 from tqdm.auto import tqdm
 import aicrowd_api
 
@@ -118,6 +121,11 @@ class EvaluationService:
         """
         Syncs the evaluation state with the evaluator
         """
+        # Less dynamic updates
+        if self.evaluation_state["state"] == "INTRINSIC_PHASE_IN_PROGRESS":
+            if random.randint(0, 4000) > 3:
+                return
+
         # Determine event type
         event_type = self.aicrowd_events.AICROWD_EVENT_INFO
         if self.evaluation_state["state"] == "ERROR":
@@ -125,19 +133,14 @@ class EvaluationService:
         elif self.evaluation_state["state"] == "EVALUATION_COMPLETE":
             event_type = self.aicrowd_events.AICROWD_EVENT_SUCCESS
 
-        # Register event type
-        try:
-            self.aicrowd_events.register_event(
-                event_type=event_type,
-                payload=self.evaluation_state
-            )
-        except:
-            # If evaluation is successful, better to try till overall timeout is reached
-            if self.evaluation_state["state"] == "EVALUATION_COMPLETE":
-                print("Evaluation succcessful but cant communicate to sourcerer, retrying...")
-                time.sleep(10)
-                self.sync_evaluation_state()
-            pass
+        # Register event type to file for longer evaluations
+        with open("/shared/output.txt", "a") as myfile:
+            myfile.write('\n' + json.dumps({
+                'event_type': event_type,
+                'payload': self.evaluation_state,
+                'message': '',
+                'agent_id': 'file_based_agent'
+            }) + '\n')
 
     def setup_gym_env(self, environment, action_type, n_objects):
 
