@@ -5,7 +5,7 @@ import pybullet
 import real_robots
 from .robot import Kuka
 import os
-
+from gym import spaces
 
 def DefaultRewardFunc(observation):
     return 0
@@ -29,11 +29,14 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
     intrinsic_timesteps = int(1e7)
     extrinsic_timesteps = int(2e3)
+    internal_steps = 10
 
     def __init__(self, render=False):
 
         self.robot = Kuka()
         MJCFBaseBulletEnv.__init__(self, self.robot, render)
+
+        self.action_space = spaces.Dict({"joint_command": self.robot.action_space, "render": spaces.MultiBinary(1)})
 
         self._cam_dist = 1.2
         self._cam_yaw = 30
@@ -203,11 +206,15 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                 self.robot.object_bodies[obj].reset_position(
                         self.robot.object_poses[obj][:3])
 
-    def get_observation(self):
+    def get_observation(self, camera_on=True):
 
         joints = self.robot.calc_state()
         sensors = self.robot.get_touch_sensors()
-        retina = self.get_retina()
+
+        if camera_on:
+            retina = self.get_retina()
+        else:
+            retina = self.observation_space.spaces[self.robot.ObsSpaces.RETINA].sample()*0
 
         observation = {
                 Kuka.ObsSpaces.JOINT_POSITIONS: joints,
@@ -218,13 +225,17 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         return observation
 
     def step(self, action):
+
+        joint_action = action['joint_command']
+        camera_on = action['render']
+
         assert(not self.scene.multiplayer)
 
         self.control_objects_limits()
-        self.robot.apply_action(action)
+        self.robot.apply_action(joint_action)
         self.scene.global_step()
 
-        observation = self.get_observation()
+        observation = self.get_observation(camera_on)
         reward = self.reward_func(observation)
 
         done = False
