@@ -29,7 +29,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
     intrinsic_timesteps = int(1e7)
     extrinsic_timesteps = int(2e3)
-    internal_steps = 10
 
     def __init__(self, render=False):
 
@@ -70,6 +69,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                                     "goals_dataset.npy.npz")
         self.goals = None
         self.goal_idx = -1
+        self.no_retina = self.observation_space.spaces[self.robot.ObsSpaces.RETINA].sample()*0
 
     def setCamera(self):
         ''' Initialize environment camera
@@ -214,7 +214,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         if camera_on:
             retina = self.get_retina()
         else:
-            retina = self.observation_space.spaces[self.robot.ObsSpaces.RETINA].sample()*0
+            retina = self.no_retina
 
         observation = {
                 Kuka.ObsSpaces.JOINT_POSITIONS: joints,
