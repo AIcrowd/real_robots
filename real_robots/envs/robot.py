@@ -4,6 +4,7 @@ import pybullet_data
 import os
 import gym
 from robot_bases import BodyPart
+import pybullet
 
 
 class Kuka(URDFBasedRobot):
@@ -16,11 +17,11 @@ class Kuka(URDFBasedRobot):
             "tomato"]
 
     object_poses = {
-            "table":   [0.00,  0.00,  0.000, 0.00, 0.00, 0.00],
-            "orange":  [-0.10,  0.00,  0.460, 0.00, 0.00, 0.00],
-            "mustard": [-0.05, -0.40,  0.480, 1.57, 3.14, 1.57],
-            "cube":    [-0.10,  0.00,  0.470, 0.00, 0.00, 0.00],
-            "tomato":  [-0.10,  0.40,  0.485, 0.00, 0.00, 0.00]}
+            "table":   [-0.15,  0.00, -0.150, 0.00, 0.00, 0.00],
+            "orange":  [-0.25,  0.00,  0.370, 0.00, 0.00, 0.00],
+            "mustard": [-0.25, -0.40,  0.370, np.pi/2, np.pi*5/4, np.pi/2],
+            "cube":    [-0.25,  0.00,  0.370, 0.00, 0.00, 0.00],
+            "tomato":  [-0.25,  0.40,  0.370, 0.00, 0.00, 0.00]}
 
     num_joints = 9
     num_kuka_joints = 7
@@ -66,6 +67,12 @@ class Kuka(URDFBasedRobot):
         bullet_client.resetSimulation()
         super(Kuka, self).reset(bullet_client)
         return self.calc_state()
+
+    def reset_object(self, obj_name):
+        position = self.object_poses[obj_name][:3]
+        eulerOrientation = self.object_poses[obj_name][3:]
+        orientation = pybullet.getQuaternionFromEuler(eulerOrientation)
+        self.object_bodies[obj_name].reset_pose(position, orientation)
 
     def get_contacts(self, forces=False):
 
@@ -115,6 +122,7 @@ class Kuka(URDFBasedRobot):
                              format(obj_name), *pos)
             self.object_bodies[obj_name] = obj
             self.object_names.update({obj.bodies[0]: obj_name})
+            self.reset_object(obj_name)
 
         for _, joint in self.jdict.items():
             joint.reset_current_position(0, 0)
@@ -151,7 +159,6 @@ class Kuka(URDFBasedRobot):
 
 
 def get_object(bullet_client, object_file, x, y, z, roll=0, pitch=0, yaw=0):
-
     position = [x, y, z]
     orientation = bullet_client.getQuaternionFromEuler([roll, pitch, yaw])
     body = bullet_client.loadURDF(
