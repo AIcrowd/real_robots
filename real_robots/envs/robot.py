@@ -122,11 +122,12 @@ class Kuka(URDFBasedRobot):
         for name, part in self.parts.items():
             self.robot_parts.update({part.bodyPartIndex: name})
 
+
     def apply_action(self, a):
         assert (np.isfinite(a).all())
         assert(len(a) == self.num_joints)
 
-        a[:-2] = np.maximum(-np.pi*0.5, np.minimum(np.pi*0.5, a[:-2]))
+        a[:-2] = np.maximum(-np.pi*0.85, np.minimum(np.pi*0.85, a[:-2]))
         a[-2:] = np.maximum(0, np.minimum(np.pi*0.5, a[-2:]))
         a[-1] = np.maximum(0, np.minimum(2*a[-2], a[-1]))
 
