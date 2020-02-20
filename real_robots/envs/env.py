@@ -106,8 +106,11 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         self.goal = self.goals[self.goal_idx]
 
         for obj in self.goal.initial_state.keys():
-            self.robot.object_bodies[obj].reset_position(
-                                        self.goal.initial_state[obj][:3])
+            position = self.goal.initial_state[obj][:3]
+            eulerOrientation = self.goal.initial_state[obj][3:]
+            orientation = pybullet.getQuaternionFromEuler(eulerOrientation)
+            self.robot.object_bodies[obj].reset_pose(position, orientation)
+
 
     def extrinsicFormula(self, p_goal, p, a_goal, a, w=1):
         pos_dist = np.linalg.norm(p_goal-p)
