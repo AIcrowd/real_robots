@@ -107,8 +107,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         for obj in self.goal.initial_state.keys():
             position = self.goal.initial_state[obj][:3]
-            eulerOrientation = self.goal.initial_state[obj][3:]
-            orientation = pybullet.getQuaternionFromEuler(eulerOrientation)
+            orientation = self.goal.initial_state[obj][3:]
             self.robot.object_bodies[obj].reset_pose(position, orientation)
 
 
