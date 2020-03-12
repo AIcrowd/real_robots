@@ -11,33 +11,34 @@ def enhanceEnvironment(env):
 
     def renderTarget(self, targetPosition, bullet_client=None):
 
-        if bullet_client is None:
-            bullet_client = self._p
-
-        self.targetPosition = targetPosition
-
-        view_matrix = bullet_client.computeViewMatrix(
-                cameraEyePosition=self.eyePosition,
-                cameraTargetPosition=self.targetPosition,
-                cameraUpVector=self.upVector)
-
-        proj_matrix = bullet_client.computeProjectionMatrixFOV(
-                fov=self.fov,
-                aspect=float(self.render_width)/self.render_height,
-                nearVal=0.1, farVal=100.0)
-
-        (_, _, px, _, mask) = bullet_client.getCameraImage(
-                width=self.render_width, height=self.render_height,
-                viewMatrix=view_matrix,
-                projectionMatrix=proj_matrix,
-                renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
-                )
-
-        rgb_array = np.array(px).reshape(self.render_height,
-                                         self.render_width, 4)
-        rgb_array = rgb_array[:, :, :3]
-
-        return rgb_array, mask
+        #if bullet_client is None:
+        #    bullet_client = self._p
+        #
+        #self.targetPosition = targetPosition
+        #
+        #view_matrix = bullet_client.computeViewMatrix(
+        #        cameraEyePosition=self.eyePosition,
+        #        cameraTargetPosition=self.targetPosition,
+        #        cameraUpVector=self.upVector)
+        #
+        #proj_matrix = bullet_client.computeProjectionMatrixFOV(
+        #        fov=self.fov,
+        #        aspect=float(self.render_width)/self.render_height,
+        #        nearVal=0.1, farVal=100.0)
+        #
+        #(_, _, px, _, mask) = bullet_client.getCameraImage(
+        #        width=self.render_width, height=self.render_height,
+        #        viewMatrix=view_matrix,
+        #        projectionMatrix=proj_matrix,
+        #        renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
+        #        )
+        #
+        #rgb_array = np.array(px).reshape(self.render_height,
+        #                                 self.render_width, 4)
+        #rgb_array = rgb_array[:, :, :3]
+        #
+        #return rgb_array, mask
+        return None, None
 
     no_mask = np.zeros((240,320))
 
@@ -192,23 +193,17 @@ if obj == 1:
 else:
     env = gym.make('REALRobot-v0')
 enhanceEnvironment(env)
+env.render("human")
 obs = env.reset()
 
-from PIL import Image
-
-for _ in range(10):
+for _ in range(1000):
     angle = np.random.rand()*np.pi*2
     distance = np.random.rand()*0.14+0.01
     raw_actions = generateGraspObj(angle, distance, obs)
     for i in range(len(raw_actions)):
         obs, _, _, _ = env.step({'joint_command': raw_actions[i], 'render': True}) #render to False shuts off robot camera and makes simulation way faster
-        frame = env.render('rgb_array')
-        im = Image.fromarray(frame)
-        im.save("frames/frame%04d.png" % i)
-    input("Press to continue")
-
-    # Go back home
-    for i in range(500):
+    
+    for i in range(50):
         obs, _, _, _ = env.step({'joint_command': np.zeros(9), 'render': False})
 
 

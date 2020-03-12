@@ -204,7 +204,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         '''
         for obj in self.robot.used_objects:
             x, y, z = self.robot.object_bodies[obj].get_position()
-            if not (-0.5 < y < 0.5) or z < 0.18:
+            if not (-0.25 < y < 0.25) or z < 0.3:
                 self.robot.reset_object(obj)
 
     def get_observation(self, camera_on=True):
