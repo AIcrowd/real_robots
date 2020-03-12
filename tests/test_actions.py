@@ -11,34 +11,33 @@ def enhanceEnvironment(env):
 
     def renderTarget(self, targetPosition, bullet_client=None):
 
-        #if bullet_client is None:
-        #    bullet_client = self._p
-        #
-        #self.targetPosition = targetPosition
-        #
-        #view_matrix = bullet_client.computeViewMatrix(
-        #        cameraEyePosition=self.eyePosition,
-        #        cameraTargetPosition=self.targetPosition,
-        #        cameraUpVector=self.upVector)
-        #
-        #proj_matrix = bullet_client.computeProjectionMatrixFOV(
-        #        fov=self.fov,
-        #        aspect=float(self.render_width)/self.render_height,
-        #        nearVal=0.1, farVal=100.0)
-        #
-        #(_, _, px, _, mask) = bullet_client.getCameraImage(
-        #        width=self.render_width, height=self.render_height,
-        #        viewMatrix=view_matrix,
-        #        projectionMatrix=proj_matrix,
-        #        renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
-        #        )
-        #
-        #rgb_array = np.array(px).reshape(self.render_height,
-        #                                 self.render_width, 4)
-        #rgb_array = rgb_array[:, :, :3]
-        #
-        #return rgb_array, mask
-        return None, None
+        if bullet_client is None:
+            bullet_client = self._p
+        
+        self.targetPosition = targetPosition
+        
+        view_matrix = bullet_client.computeViewMatrix(
+                cameraEyePosition=self.eyePosition,
+                cameraTargetPosition=self.targetPosition,
+                cameraUpVector=self.upVector)
+        
+        proj_matrix = bullet_client.computeProjectionMatrixFOV(
+                fov=self.fov,
+                aspect=float(self.render_width)/self.render_height,
+                nearVal=0.1, farVal=100.0)
+        
+        (_, _, px, _, mask) = bullet_client.getCameraImage(
+                width=self.render_width, height=self.render_height,
+                viewMatrix=view_matrix,
+                projectionMatrix=proj_matrix,
+                renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
+                )
+        
+        rgb_array = np.array(px).reshape(self.render_height,
+                                         self.render_width, 4)
+        rgb_array = rgb_array[:, :, :3]
+        
+        return rgb_array, mask
 
     no_mask = np.zeros((240,320))
 
@@ -174,36 +173,40 @@ def goToPosXYClosed(coords):
     action[-1] = np.pi/2
     return action
 
-def generateGraspObj(angle, distance, observation):
-    cube_position = observation['object_positions']['cube'][:2]
+def generateGraspObj(angle, distance, observation, object_name="cube"):
+    position = observation['object_positions'][object_name][:2]
 
-    destination = cube_position.copy()
+    destination = position.copy()
     destination[0] += np.cos(angle)*distance
     destination[1] += np.sin(angle)*distance
 
-    np.minimum(destination, [-0.1, 0.5], destination)
-    np.maximum(destination, [-0.5, -0.5], destination)
+    # destination limits
+    destination = np.minimum(destination, [  0.25,  0.25])
+    destination = np.maximum(destination, [ -0.25, -0.25])
 
-    return generateXYGrasp(cube_position, destination)
+    return generateXYGrasp(position, destination)
 
 
-obj = 1
+obj = 3
 if obj == 1:
     env = gym.make('REALRobotSingleObj-v0')
+    print("Single object")
 else:
     env = gym.make('REALRobot-v0')
 enhanceEnvironment(env)
 env.render("human")
 obs = env.reset()
 
-for _ in range(1000):
+obj_names = ['cube', 'mustard', 'tomato']
+while True:
     angle = np.random.rand()*np.pi*2
-    distance = np.random.rand()*0.14+0.01
-    raw_actions = generateGraspObj(angle, distance, obs)
+    distance = np.random.rand()*0.14+0.04
+    obj_name = np.random.choice(obj_names)
+    raw_actions = generateGraspObj(angle, distance, obs, obj_name)
     for i in range(len(raw_actions)):
-        obs, _, _, _ = env.step({'joint_command': raw_actions[i], 'render': True}) #render to False shuts off robot camera and makes simulation way faster
+        obs, _, _, _ = env.step({'joint_command': raw_actions[i], 'render': False}) 
     
-    for i in range(50):
+    for i in range(5):
         obs, _, _, _ = env.step({'joint_command': np.zeros(9), 'render': False})
 
 
