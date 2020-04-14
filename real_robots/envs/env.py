@@ -7,6 +7,7 @@ from .robot import Kuka
 import os
 from gym import spaces
 
+
 def DefaultRewardFunc(observation):
     return 0
 
@@ -110,7 +111,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             orientation = self.goal.initial_state[obj][3:]
             self.robot.object_bodies[obj].reset_pose(position, orientation)
 
-
     def extrinsicFormula(self, p_goal, p, a_goal, a, w=1):
         pos_dist = np.linalg.norm(p_goal-p)
         pos_const = -np.log(0.25) / 0.05  # Score goes down to 0.25 within 5cm
@@ -149,7 +149,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         # print("Goal score: {:.4f}".format(score))
         return self.goal.challenge, score
 
-
     def evaluateGoal2020(self):
         initial_state = self.goal.initial_state  # noqa F841
         final_state = self.goal.final_state
@@ -161,7 +160,8 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             p = np.array(current_state[obj].get_position())
             p_goal = np.array(final_state[obj][:3])
             pos_dist = np.linalg.norm(p_goal-p)
-            pos_const = -np.log(0.25) / 0.10  # Score goes down to 0.25 within 5cm
+            # Score goes down to 0.25 within 10cm
+            pos_const = -np.log(0.25) / 0.10
             pos_value = np.exp(- pos_const * pos_dist)
             objScore = pos_value
             # print("Object: {} Score: {:.4f}".format(obj,objScore))
@@ -169,7 +169,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         # print("Goal score: {:.4f}".format(score))
         return self.goal.challenge, score
-
 
     def create_single_player_scene(self, bullet_client):
         return SingleRobotEmptyScene(bullet_client, gravity=9.81,
