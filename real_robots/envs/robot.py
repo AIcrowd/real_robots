@@ -47,6 +47,13 @@ class Kuka(URDFBasedRobot):
                                 'kuka_gripper.urdf', 'kuka0',
                                 action_dim=self.action_dim, obs_dim=1)
 
+        self.min_joints = np.ones(9)*-np.pi*0.85
+        self.max_joints = np.ones(9)*np.pi*0.85
+        self.min_joints[-2:] = 0
+        self.max_joints[-2:] = np.pi/2
+
+        self.action_space = gym.spaces.Box(low=self.min_joints, high=self.max_joints)
+
         self.observation_space = gym.spaces.Dict({
             self.ObsSpaces.JOINT_POSITIONS: gym.spaces.Box(
                 -np.inf, np.inf, [self.num_joints], dtype=float),
@@ -135,8 +142,7 @@ class Kuka(URDFBasedRobot):
         assert (np.isfinite(a).all())
         assert(len(a) == self.num_joints)
 
-        a[:-2] = np.maximum(-np.pi*0.85, np.minimum(np.pi*0.85, a[:-2]))
-        a[-2:] = np.maximum(0, np.minimum(np.pi*0.5, a[-2:]))
+        a = np.maximum(self.min_joints, (np.minimum(a, self.max_joints)))
         a[-1] = np.maximum(0, np.minimum(2*a[-2], a[-1]))
 
         for i, j in enumerate(a[:-2]):
