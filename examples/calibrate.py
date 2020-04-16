@@ -52,7 +52,7 @@ for t in range(len(rollout.T)):
     action[7:] = ctrl_joints[7:]*np.pi
 
     # do the movement
-    state, r, done, info_ = env.step(action)
+    state, r, done, info_ = env.step({"joint_command":action, "render": False})
 
     time.sleep(1/200)
     print("{}/{}".format(t, stime))

@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <robot name="table" xmlns:xacro="http://www.ros.org/wiki/xacro">
-    <link name="table">
+    <link name="table_base">
         <contact>
             <lateral_friction value="1.0"/>
         </contact>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <mass value="0.0"/>
-            <inertia ixx="0.03" ixy="0" ixz="0" iyy="0.03" iyz="0" izz="0.03"/>
+        <inertia ixx="0.0242" ixy="0" ixz="0" iyy="0.02419" iyz="0" izz="0.04171"/>
         </inertial>
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -19,11 +19,42 @@
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <origin rpy="0 0.0 0" xyz="0 0 0"/>
             <geometry>
                 <mesh filename="package://kuka_gripper_description/meshes/table.obj"/>
             </geometry>
         </collision>
     </link>
+    <link name="table_upper">
+        <contact>
+            <lateral_friction value="1.0"/>
+        </contact>
+      <inertial>
+        <origin xyz="0.003 -0.003 0" rpy="0 0 0"/>
+        <mass value="0.0"/>
+        <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+      </inertial>
+      <visual name="upper_visual">
+        <origin xyz="0.003 -0.003 0" rpy="0 0 0"/>
+        <geometry>
+            <mesh filename="package://kuka_gripper_description/meshes/table_upper.obj"/>
+        </geometry>
+            <material name="table">
+                <texture filename="package://kuka_gripper_description/meshes/table.png"/>
+            </material>
+      </visual>
+      <collision name="upper_visual">
+        <origin xyz="0.003 -0.003 0" rpy="0 0 0"/>
+        <geometry>
+            <mesh filename="package://kuka_gripper_description/meshes/table_upper.obj"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="upper" type="fixed">
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <parent link="table_base"/>
+      <child link="table_upper"/>
+    </joint>
+    -->
 </robot>
 
