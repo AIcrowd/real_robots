@@ -11,15 +11,23 @@ from gym.envs.registration import register
 
 from .evaluate import evaluate  # noqa F401
 
-register(
-    id='REALRobot-v0',
-    entry_point='real_robots.envs:REALRobotEnv',
-)
 
-register(
-    id='REALRobotSingleObj-v0',
-    entry_point='real_robots.envs:REALRobotEnvSingleObj',
-)
+for n_obj in [1,2,3]:
+    for obs, rnd in zip([True, False], ["R1", "R2"]):
+        for action_type in ['joints', 'cartesian', 'macro']:
+            action_str = action_type[0].upper()
+            env_id = 'REALRobot2020-{}{}{}-v0'.format(rnd, action_str, n_obj)
+
+            register(id=env_id,
+                entry_point='real_robots.envs:REALRobotEnv',
+                kwargs={'additional_obs': obs,
+                        'objects' : n_obj,
+                        'action_type' : action_type
+                        },
+            )
+
+
+
 
 
 def getPackageDataPath():

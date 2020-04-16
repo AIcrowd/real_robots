@@ -14,13 +14,14 @@ def DefaultRewardFunc(observation):
 
 class Goal:
     def __init__(self, initial_state=None, final_state=None, retina=None,
-                 retina_before=None, challenge=None):
+                 retina_before=None, challenge=None, mask=None):
 
         self.initial_state = initial_state
         self.final_state = final_state
         self.retina = retina
         self.retina_before = retina_before
         self.challenge = challenge
+        self.mask = mask
 
 
 class REALRobotEnv(MJCFBaseBulletEnv):
@@ -31,12 +32,51 @@ class REALRobotEnv(MJCFBaseBulletEnv):
     intrinsic_timesteps = int(1e7)
     extrinsic_timesteps = int(2e3)
 
-    def __init__(self, render=False):
+    def __init__(self, render=False, objects=3, action_type='joints',
+                 additional_obs=True):
 
-        self.robot = Kuka()
+        self.robot = Kuka(additional_obs, objects)
         MJCFBaseBulletEnv.__init__(self, self.robot, render)
 
-        self.action_space = spaces.Dict({"joint_command": self.robot.action_space, "render": spaces.MultiBinary(1)})
+        if additional_obs:
+            self.get_observation = self.get_observation_extended
+
+        self.joints_space = self.robot.action_space
+
+        self.cartesian_space = spaces.Box(
+                           low=np.array([-0.5, -0.5, 0.35, -1, -1, -1, -1]),
+                           high=np.array([-0.1, 0.5, 0.60,  1,  1,  1,  1]),
+                           dtype=np.float32)
+
+        self.macro_space = spaces.Box(
+                                  low=np.array([[-0.5, -0.5], [-0.5, -0.5]]),
+                                  high=np.array([[-0.1, 0.5], [-0.1, 0.5]]),
+                                  dtype=np.float32)
+
+        self.gripper_space = spaces.Box(low=0, high=np.pi/2, shape=(2,))
+
+        if action_type == 'joints':
+            self.action_space = spaces.Dict({
+                                "joint_command": self.joints_space,
+                                "render": spaces.MultiBinary(1)})
+            self.step = self.step_joints
+
+        elif action_type == 'cartesian':
+            self.action_space = spaces.Dict({
+                                "cartesian_command": self.cartesian_space,
+                                "gripper_command": self.gripper_space,
+                                "render": spaces.MultiBinary(1)})
+            self.step = self.step_cartesian
+
+        elif action_type == 'macro':
+            self.action_space = spaces.Dict({
+                                "macro_action": self.macro_space,
+                                "render": spaces.MultiBinary(1)})
+            self.step = self.step_macro
+            self.requested_action = None
+        else:
+            raise ValueError("action_type must be one 'joints', 'cartesian' "
+                             "or 'macro'")
 
         self._cam_dist = 1.2
         self._cam_yaw = 30
@@ -50,11 +90,10 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         self.reward_func = DefaultRewardFunc
 
-        self.robot.used_objects = ["table", "tomato", "mustard", "cube"]
         self.set_eye("eye")
 
         self.goal = Goal(retina=self.observation_space.spaces[
-            self.robot.ObsSpaces.GOAL].sample()*0)
+                                self.robot.ObsSpaces.GOAL].sample()*0)
 
         # Set default goals dataset path
         #
@@ -70,7 +109,10 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                                     "goals_dataset.npy.npz")
         self.goals = None
         self.goal_idx = -1
-        self.no_retina = self.observation_space.spaces[self.robot.ObsSpaces.RETINA].sample()*0
+        self.no_retina = self.observation_space.spaces[
+                         self.robot.ObsSpaces.RETINA].sample()*0
+        self.no_mask = self.observation_space.spaces[
+                         self.robot.ObsSpaces.MASK].sample()*0
 
     def setCamera(self):
         ''' Initialize environment camera
@@ -208,6 +250,12 @@ class REALRobotEnv(MJCFBaseBulletEnv):
     def get_obj_pose(self, name):
         return self.robot.object_bodies[name].get_pose()
 
+    def get_all_used_objects(self):
+        all_poses = {}
+        for obj in self.robot.used_objects[1:]:
+            all_poses[obj] = self.robot.object_bodies[obj].get_pose()
+        return all_poses
+
     def get_contacts(self):
         return self.robot.get_contacts()
 
@@ -246,7 +294,36 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         return observation
 
+    def get_observation_extended(self, camera_on=False):
+
+        joints = self.robot.calc_state()
+        sensors = self.robot.get_touch_sensors()
+
+        if camera_on:
+            retina, mask = self.get_retina()
+        else:
+            retina = self.no_retina
+            mask = self.no_mask
+
+        all_obj_poses = self.get_all_used_objects()
+
+        observation = {
+                Kuka.ObsSpaces.JOINT_POSITIONS: joints,
+                Kuka.ObsSpaces.TOUCH_SENSORS: sensors,
+                Kuka.ObsSpaces.RETINA: retina,
+                Kuka.ObsSpaces.MASK: mask,
+                Kuka.ObsSpaces.OBJ_POS: all_obj_poses,
+                Kuka.ObsSpaces.GOAL: self.goal.retina,
+                Kuka.ObsSpaces.GOAL_MASK: self.goal.mask,
+                Kuka.ObsSpaces.GOAL_POS: self.goal.final_state
+        }
+
+        return observation
+
     def step(self, action):
+        return self.step_joint(action)
+
+    def step_joints(self, action):
 
         joint_action = action['joint_command']
         camera_on = action['render']
@@ -274,11 +351,88 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         return observation, reward, done, info
 
+    def step_cartesian(self, action):
+        coords = action['cartesian_command'][:3]
+        desiredOrientation = action['cartesian_command'][3:]
+        inv_act = pybullet.calculateInverseKinematics(0, 7, coords,
+                                                      desiredOrientation,
+                                                      maxNumIterations=1000,
+                                                      residualThreshold=0.001)
 
-class REALRobotEnvSingleObj(REALRobotEnv):
-    def __init__(self, render=False):
-        super(REALRobotEnvSingleObj, self).__init__(render)
-        self.robot.used_objects = ["table", "cube"]
+        joint_action = {"joint_command": inv_act[:9],
+                       "render": action['render']}
+
+        return self.step_joints(joint_action)
+
+    def step_macro(self, action):
+
+        macro_action = action['macro_action']
+
+        if np.all(macro_action == self.requested_action):
+            pass
+        else:
+            self.requested_action = macro_action
+            self.generate_plan(macro_action)
+        
+        joints = self.next_step()
+
+        joint_action = {"joint_command": joints,
+                       "render": action['render']}
+
+        return self.step_joints(joint_action)
+
+
+    def generate_plan(self, macro_action):
+
+        n_timesteps = 100
+        home = np.zeros(9)
+        home2 = np.zeros(9)
+        home2[5] = np.pi / 2
+        home2[6] = np.pi / 2
+
+        def goToPosXY(coords):
+            desiredOrientation = pybullet.getQuaternionFromEuler([0,3.14,-1.57])
+            action = pybullet.calculateInverseKinematics(0, 7, coords,
+                                              desiredOrientation,
+                                              maxNumIterations = 1000,
+                                              residualThreshold = 0.001)
+            return action[:9]
+
+        point_1 = macro_action[0]
+        point_2 = macro_action[1]
+
+        point_1_h = goToPosXY(np.hstack([point_1, 0.6]))
+        point_1_l = goToPosXY(np.hstack([point_1, 0.46]))
+        point_2_h = goToPosXY(np.hstack([point_2, 0.6]))
+        point_2_l = goToPosXY(np.hstack([point_2, 0.46]))
+
+
+        # TODO Revise duration after limitDiff has been introduced
+        actionsParts = []
+        actionsParts += [np.linspace(home, home2, n_timesteps)]
+        actionsParts += [np.linspace(home2, point_1_h, n_timesteps)]
+        actionsParts += [np.linspace(point_1_h, point_1_h, n_timesteps)]
+        actionsParts += [np.linspace(point_1_h, point_1_l, n_timesteps)]
+        actionsParts += [np.linspace(point_1_l, point_1_l, n_timesteps)]
+        actionsParts += [np.linspace(point_1_l, point_2_l, n_timesteps)]
+        actionsParts += [np.linspace(point_2_l, point_2_l, n_timesteps)]
+        actionsParts += [np.linspace(point_2_l, point_2_h, n_timesteps)]
+        actionsParts += [np.linspace(point_2_h, point_2_h, n_timesteps)]
+        actionsParts += [np.linspace(point_2_h, home2, n_timesteps)]
+        actionsParts += [np.linspace(home2, home, n_timesteps)]
+        actionsParts += [np.linspace(home, home, n_timesteps)]
+
+        raw_actions = np.vstack(actionsParts)
+
+        self.planned_actions = raw_actions
+        self.plan_step = -1
+
+    def next_step(self):
+        self.plan_step += 1
+        if self.plan_step < len(self.planned_actions):
+            return self.planned_actions[self.plan_step,:]
+        else:
+            return np.zeros(9)
 
 
 class EnvCamera:
@@ -364,7 +518,7 @@ class EyeCamera:
                 aspect=float(self.render_width)/self.render_height,
                 nearVal=0.1, farVal=100.0)
 
-        (_, _, px, _, _) = bullet_client.getCameraImage(
+        (_, _, px, _, mask) = bullet_client.getCameraImage(
                 width=self.render_width, height=self.render_height,
                 viewMatrix=view_matrix,
                 projectionMatrix=proj_matrix,
@@ -375,7 +529,7 @@ class EyeCamera:
                                          self.render_width, 4)
         rgb_array = rgb_array[:, :, :3]
 
-        return rgb_array
+        return rgb_array, mask
 
     def renderPitchRoll(self, distance, roll, pitch, yaw, bullet_client=None):
 

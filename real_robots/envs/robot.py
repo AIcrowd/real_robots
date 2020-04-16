@@ -34,12 +34,19 @@ class Kuka(URDFBasedRobot):
         JOINT_POSITIONS = "joint_positions"
         TOUCH_SENSORS = "touch_sensors"
         RETINA = "retina"
+        MASK = "mask"
+        OBJ_POS = "object_positions"
         GOAL = "goal"
+        GOAL_MASK = "goal_mask"
+        GOAL_POS = "goal_positions"
 
-    def __init__(self):
+    def __init__(self, additional_obs=False, objects=3):
 
         self.robot_position = [-0.8, 0, 0]
         self.contact_threshold = 0.1
+
+        self.used_objects = ["table", "cube",
+                                   "tomato", "mustard"][:objects+1]
 
         self.action_dim = self.num_joints
 
@@ -54,15 +61,47 @@ class Kuka(URDFBasedRobot):
 
         self.action_space = gym.spaces.Box(low=self.min_joints, high=self.max_joints)
 
-        self.observation_space = gym.spaces.Dict({
-            self.ObsSpaces.JOINT_POSITIONS: gym.spaces.Box(
-                -np.inf, np.inf, [self.num_joints], dtype=float),
-            self.ObsSpaces.TOUCH_SENSORS: gym.spaces.Box(
-                0, np.inf, [self.num_touch_sensors], dtype=float),
-            self.ObsSpaces.RETINA: gym.spaces.Box(
-                0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float),
-            self.ObsSpaces.GOAL: gym.spaces.Box(
-                0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float)})
+
+        if additional_obs:
+            obj_obs = {}
+            for obj in self.used_objects[1:]:
+                high = np.array([np.finfo(np.float32).max,
+                                 np.finfo(np.float32).max,
+                                 np.finfo(np.float32).max,
+                                 1.0,
+                                 1.0,
+                                 1.0,
+                                 1.0])
+                obj_obs[obj] = gym.spaces.Box(-high, high)
+
+            self.observation_space = gym.spaces.Dict({
+                self.ObsSpaces.JOINT_POSITIONS: gym.spaces.Box(
+                    -np.inf, np.inf, [self.num_joints], dtype=float),
+                self.ObsSpaces.TOUCH_SENSORS: gym.spaces.Box(
+                    0, np.inf, [self.num_touch_sensors], dtype=float),
+                self.ObsSpaces.RETINA: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float),
+                self.ObsSpaces.GOAL: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float),
+                self.ObsSpaces.MASK: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width], dtype=float),
+                self.ObsSpaces.GOAL_MASK: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width], dtype=float),
+                self.ObsSpaces.OBJ_POS: gym.spaces.Dict(obj_obs),
+                self.ObsSpaces.OBJ_POS: gym.spaces.Dict(obj_obs)
+                }
+            )
+        else:
+            self.observation_space = gym.spaces.Dict({
+                self.ObsSpaces.JOINT_POSITIONS: gym.spaces.Box(
+                    -np.inf, np.inf, [self.num_joints], dtype=float),
+                self.ObsSpaces.TOUCH_SENSORS: gym.spaces.Box(
+                    0, np.inf, [self.num_touch_sensors], dtype=float),
+                self.ObsSpaces.RETINA: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float),
+                self.ObsSpaces.GOAL: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float)}
+            )
 
         self.target = "orange"
 
