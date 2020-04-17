@@ -23,11 +23,6 @@ class Kuka(URDFBasedRobot):
             "cube":    [ -0.10000,  0.00000,  0.35000, 0.00000, 0.00000, 0.00000],
             "tomato":  [ -0.10000, -0.15000,  0.35000, 0.00000, 0.00000, 0.00000]}
     
-    object_limits = [
-            [-0.25, 0.25],
-            [-0.25, 0.25],
-            [ 0.20, 3.00]]
-
     num_joints = 9
     num_kuka_joints = 7
     num_gripper_joints = 2
