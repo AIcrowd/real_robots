@@ -343,16 +343,20 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         macro_action = action['macro_action']
 
-        if np.all(macro_action == self.requested_action):
-            pass
+        if macro_action is None:
+            joint_action = {"joint_command": np.zeros(9),
+                           "render": action['render']}
         else:
-            self.requested_action = macro_action
-            self.generate_plan(macro_action)
-        
-        joints = self.next_step()
+            if np.all(macro_action == self.requested_action):
+                pass
+            else:
+                self.requested_action = macro_action
+                self.generate_plan(macro_action)
 
-        joint_action = {"joint_command": joints,
-                       "render": action['render']}
+            joints = self.next_step()
+
+            joint_action = {"joint_command": joints,
+                           "render": action['render']}
 
         return self.step_joints(joint_action)
 
