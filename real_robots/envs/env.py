@@ -226,10 +226,10 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         return self.robot.object_bodies[name].get_pose()
 
     def get_all_used_objects(self):
-        all_poses = {}
+        all_positions = {}
         for obj in self.robot.used_objects[1:]:
-            all_poses[obj] = self.robot.object_bodies[obj].get_pose()
-        return all_poses
+            all_positions[obj] = self.robot.object_bodies[obj].get_position()
+        return all_positions
 
     def get_contacts(self):
         return self.robot.get_contacts()
@@ -280,14 +280,14 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             retina = self.no_retina
             mask = self.no_mask
 
-        all_obj_poses = self.get_all_used_objects()
+        all_obj_positions = self.get_all_used_objects()
 
         observation = {
                 Kuka.ObsSpaces.JOINT_POSITIONS: joints,
                 Kuka.ObsSpaces.TOUCH_SENSORS: sensors,
                 Kuka.ObsSpaces.RETINA: retina,
                 Kuka.ObsSpaces.MASK: mask,
-                Kuka.ObsSpaces.OBJ_POS: all_obj_poses,
+                Kuka.ObsSpaces.OBJ_POS: all_obj_positions,
                 Kuka.ObsSpaces.GOAL: self.goal.retina,
                 Kuka.ObsSpaces.GOAL_MASK: self.goal.mask,
                 Kuka.ObsSpaces.GOAL_POS: self.goal.final_state
