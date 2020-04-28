@@ -135,7 +135,7 @@ class EvaluationService:
             pass
 
     def setup_gym_env(self):
-        self.env = gym.make('REALRobot-v0')
+        self.env = gym.make('REALRobot2020-R1M1-v0')
         self.env.set_goals_dataset_path(self.goals_dataset_path)
         self.env.intrinsic_timesteps = self.intrinsic_timesteps  # default=1e7
         self.env.extrinsic_timesteps = self.extrinsic_timesteps  # default=2e3
@@ -327,7 +327,7 @@ class EvaluationService:
         self.evaluation_state["state"] = "EXTRINSIC_PHASE_COMPLETE"
         self.evaluation_state["score"] = {
             "score": self.evaluation_state["evaluation_score"]["score_total"],
-            "score_secondary" : self.evaluation_state["evaluation_score"]["score_2D"]  # noqa
+            "score_secondary" : self.evaluation_state["evaluation_score"]["score_REAL2020"]  # noqa
         }
         self.evaluation_state["meta"] = self.evaluation_state["evaluation_score"]  # noqa
         self.evaluation_state["state"] = "EVALUATION_COMPLETE"
@@ -339,7 +339,7 @@ class EvaluationService:
 
     def build_score_object(self):
         total_score = 0
-        challenges = ['2D', '2.5D', '3D']
+        challenges = ['REAL2020']
 
         score_object = {}
         for key in challenges:
