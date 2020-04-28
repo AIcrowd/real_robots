@@ -170,31 +170,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         initial_state = self.goal.initial_state  # noqa F841
         final_state = self.goal.final_state
         current_state = self.robot.object_bodies
-
-        score = 0
-        n_obj = len(final_state.keys())
-        for obj in final_state.keys():
-            p = np.array(current_state[obj].get_position())
-            p_goal = np.array(final_state[obj][:3])
-            a = np.array(current_state[obj].get_pose()[3:])
-            a_goal = np.array(final_state[obj][3:])
-
-            if self.goal.challenge == '3D':
-                w = 0.75
-            else:
-                w = 1
-
-            objScore = self.extrinsicFormula(p_goal, p, a_goal, a, w)
-            # print("Object: {} Score: {:.4f}".format(obj,objScore))
-            score += objScore / n_obj
-
-        # print("Goal score: {:.4f}".format(score))
-        return self.goal.challenge, score
-
-    def evaluateGoal2020(self):
-        initial_state = self.goal.initial_state  # noqa F841
-        final_state = self.goal.final_state
-        current_state = self.robot.object_bodies
         score = 0
         for obj in final_state.keys():
             if obj not in current_state:
