@@ -38,9 +38,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         self.robot = Kuka(additional_obs, objects)
         MJCFBaseBulletEnv.__init__(self, self.robot, render)
 
-        if additional_obs:
-            self.get_observation = self.get_observation_extended
-
         self.joints_space = self.robot.action_space
 
         self.cartesian_space = spaces.Box(
@@ -111,8 +108,11 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         self.goal_idx = -1
         self.no_retina = self.observation_space.spaces[
                          self.robot.ObsSpaces.RETINA].sample()*0
-        self.no_mask = self.observation_space.spaces[
-                         self.robot.ObsSpaces.MASK].sample()*0
+
+        if additional_obs:
+            self.get_observation = self.get_observation_extended
+            self.no_mask = self.observation_space.spaces[
+                                self.robot.ObsSpaces.MASK].sample()*0
 
     def setCamera(self):
         ''' Initialize environment camera
