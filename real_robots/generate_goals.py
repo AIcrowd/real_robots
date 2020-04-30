@@ -414,7 +414,7 @@ def visualizeGoalDistribution(all_goals):
     for c, challenge in enumerate(challenges):
         goals = [goal for goal in all_goals if goal.challenge == challenge]
         if len(goals) > 0:
-            if True:
+            if False:
                 #Superimposed images view
                 tomatos = sum([goal.mask == 2 for goal in goals])
                 mustards = sum([goal.mask == 3 for goal in goals])
@@ -424,12 +424,9 @@ def visualizeGoalDistribution(all_goals):
                 axes[c, 2].imshow(cubes, cmap='gray')
             else:
                 #Positions scatter view
-                cubes = np.vstack([goal.final_state['cube'] for goal in goals])
-                tomatos = np.vstack([goal.final_state['tomato'] for goal in goals])
-                mustards = np.vstack([goal.final_state['mustard'] for goal in goals])
-                axes[c, 0].scatter(cubes[:, 0], cubes[:, 1])
-                axes[c, 1].scatter(tomatos[:, 0], tomatos[:, 1])
-                axes[c, 2].scatter(mustards[:, 0], mustards[:, 1])
+                for i, o in enumerate(goal.final_state.keys()):
+                    positions = np.vstack([goal.final_state[o] for goal in goals])
+                    axes[i, 2].scatter(positions[:, 0], positions[:, 1])
 
     plt.show()
 
