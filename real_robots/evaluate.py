@@ -39,9 +39,12 @@ class EvaluationService:
     """
     def __init__(self,
                  Controller,
-                 intrinsic_timesteps=1e7,
-                 extrinsic_timesteps=2e3,
-                 extrinsic_trials=350,
+                 environment='R1',
+                 action_type='macro_action',
+                 n_objects=1,
+                 intrinsic_timesteps=15e6,
+                 extrinsic_timesteps=10e3,
+                 extrinsic_trials=50,
                  visualize=True,
                  goals_dataset_path="./goals.npy.npz"):
 
@@ -53,7 +56,7 @@ class EvaluationService:
         self.goals_dataset_path = goals_dataset_path
 
         # Start Setup
-        self.setup_gym_env()
+        self.setup_gym_env(environment, action_type, n_objects)
         self.setup_controller()
         self.setup_evaluation_state()
         self.setup_scores()
@@ -134,11 +137,29 @@ class EvaluationService:
                 self.sync_evaluation_state()
             pass
 
-    def setup_gym_env(self):
-        self.env = gym.make('REALRobot2020-R1M1-v0')
+    def setup_gym_env(self, environment, action_type, n_objects):
+
+        if environment in ["R1", "R2"]:
+            rnd = environment
+        else:
+            raise Exception("Environment type has to be either R1 or R2")
+
+        if action_type in ['joints', 'cartesian', 'macro_action']:
+            act = action_type[0].upper()
+        else:
+            raise Exception("Action type has to be either 'joints', 'cartesian',"
+                            "or 'macro_action'")
+
+        if isinstance(n_objects, int) and 1 <= n_objects <= 3:
+            n_obj = n_objects
+        else:
+            raise Exception("Number of objects has to be 1, 2 or 3.")
+
+        envString = 'REALRobot2020-{}{}{}-v0'.format(rnd, act, n_obj)
+        self.env = gym.make(envString)
         self.env.set_goals_dataset_path(self.goals_dataset_path)
-        self.env.intrinsic_timesteps = self.intrinsic_timesteps  # default=1e7
-        self.env.extrinsic_timesteps = self.extrinsic_timesteps  # default=2e3
+        self.env.intrinsic_timesteps = self.intrinsic_timesteps  # default=15e6
+        self.env.extrinsic_timesteps = self.extrinsic_timesteps  # default=10e3
 
         if self.visualize:
             self.env.render('human')
@@ -361,14 +382,20 @@ class EvaluationService:
 
 
 def evaluate(Controller,
-             intrinsic_timesteps=1e7,
-             extrinsic_timesteps=2e3,
-             extrinsic_trials=350,
+             environment='R1',
+             action_type='macro_action',
+             n_objects=1,
+             intrinsic_timesteps=15e6,
+             extrinsic_timesteps=10e3,
+             extrinsic_trials=50,
              visualize=True,
              goals_dataset_path="./goals.npy.npz"):
 
     evaluation_service = EvaluationService(
         Controller,
+        environment,
+        action_type,
+        n_objects,
         intrinsic_timesteps,
         extrinsic_timesteps,
         extrinsic_trials,

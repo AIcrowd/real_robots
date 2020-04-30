@@ -14,7 +14,7 @@ from .evaluate import evaluate  # noqa F401
 
 for n_obj in [1,2,3]:
     for obs, rnd in zip([True, False], ["R1", "R2"]):
-        for action_type in ['joints', 'cartesian', 'macro']:
+        for action_type in ['joints', 'cartesian', 'macro_action']:
             action_str = action_type[0].upper()
             env_id = 'REALRobot2020-{}{}{}-v0'.format(rnd, action_str, n_obj)
 

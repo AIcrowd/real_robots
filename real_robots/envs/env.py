@@ -65,7 +65,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                                 "render": spaces.MultiBinary(1)})
             self.step = self.step_cartesian
 
-        elif action_type == 'macro':
+        elif action_type == 'macro_action':
             self.action_space = spaces.Dict({
                                 "macro_action": self.macro_space,
                                 "render": spaces.MultiBinary(1)})
@@ -73,7 +73,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             self.requested_action = None
         else:
             raise ValueError("action_type must be one 'joints', 'cartesian' "
-                             "or 'macro'")
+                             "or 'macro_action'")
 
         self._cam_dist = 1.2
         self._cam_yaw = 30
