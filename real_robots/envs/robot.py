@@ -59,8 +59,9 @@ class Kuka(URDFBasedRobot):
         self.min_joints[-2:] = 0
         self.max_joints[-2:] = np.pi/2
 
-        self.action_space = gym.spaces.Box(low=self.min_joints, high=self.max_joints)
-
+        self.action_space = gym.spaces.Box(low=self.min_joints,
+                                           high=self.max_joints,
+                                           dtype=float)
 
         if additional_obs:
             obj_obs = {}
@@ -72,7 +73,7 @@ class Kuka(URDFBasedRobot):
                                  1.0,
                                  1.0,
                                  1.0])
-                obj_obs[obj] = gym.spaces.Box(-high, high)
+                obj_obs[obj] = gym.spaces.Box(-high, high, dtype=float)
 
             self.observation_space = gym.spaces.Dict({
                 self.ObsSpaces.JOINT_POSITIONS: gym.spaces.Box(
@@ -87,7 +88,6 @@ class Kuka(URDFBasedRobot):
                     0, 255, [Kuka.eye_height, Kuka.eye_width], dtype=float),
                 self.ObsSpaces.GOAL_MASK: gym.spaces.Box(
                     0, 255, [Kuka.eye_height, Kuka.eye_width], dtype=float),
-                self.ObsSpaces.OBJ_POS: gym.spaces.Dict(obj_obs),
                 self.ObsSpaces.OBJ_POS: gym.spaces.Dict(obj_obs)
                 }
             )

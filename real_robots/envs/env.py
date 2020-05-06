@@ -43,14 +43,15 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         self.cartesian_space = spaces.Box(
                            low=np.array([-0.5, -0.5, 0.35, -1, -1, -1, -1]),
                            high=np.array([-0.1, 0.5, 0.60,  1,  1,  1,  1]),
-                           dtype=np.float32)
+                           dtype=float)
 
         self.macro_space = spaces.Box(
                                   low=np.array([[-0.5, -0.5], [-0.5, -0.5]]),
                                   high=np.array([[-0.1, 0.5], [-0.1, 0.5]]),
-                                  dtype=np.float32)
+                                  dtype=float)
 
-        self.gripper_space = spaces.Box(low=0, high=np.pi/2, shape=(2,))
+        self.gripper_space = spaces.Box(low=0,
+                                        high=np.pi/2, shape=(2,), dtype=float)
 
         if action_type == 'joints':
             self.action_space = spaces.Dict({
@@ -295,6 +296,15 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         return observation
 
+    def limitActionByJoint(self, desired_joints):
+        current_joints = self.robot.calc_state()
+        # The following specifies maximum change requested for each joint
+        maxDiff = np.array([0.06, 0.06, 0.05, 0.06, 0.07, 0.1, 0.1, 0.1, 0.1])
+        minDiff = -maxDiff
+        diff = np.minimum(maxDiff, desired_joints-current_joints)
+        diff = np.maximum(minDiff, diff)
+        return current_joints+diff
+
     def step(self, action):
         return self.step_joint(action)
 
@@ -304,6 +314,8 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         camera_on = action['render']
 
         assert(not self.scene.multiplayer)
+
+        joint_action = self.limitActionByJoint(joint_action)
 
         self.control_objects_limits()
         self.robot.apply_action(joint_action)
@@ -335,7 +347,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                                                       residualThreshold=0.001)
 
         joint_action = {"joint_command": inv_act[:9],
-                       "render": action['render']}
+                        "render": action['render']}
 
         return self.step_joints(joint_action)
 
@@ -345,7 +357,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         if macro_action is None:
             joint_action = {"joint_command": np.zeros(9),
-                           "render": action['render']}
+                            "render": action['render']}
         else:
             if np.all(macro_action == self.requested_action):
                 pass
@@ -356,10 +368,9 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             joints = self.next_step()
 
             joint_action = {"joint_command": joints,
-                           "render": action['render']}
+                            "render": action['render']}
 
         return self.step_joints(joint_action)
-
 
     def generate_plan(self, macro_action):
 
@@ -370,11 +381,11 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         home2[6] = np.pi / 2
 
         def goToPosXY(coords):
-            desiredOrientation = pybullet.getQuaternionFromEuler([0,3.14,-1.57])
+            desiredOrientation = pybullet.getQuaternionFromEuler([0, 3.14, -1.57])
             action = pybullet.calculateInverseKinematics(0, 7, coords,
-                                              desiredOrientation,
-                                              maxNumIterations = 1000,
-                                              residualThreshold = 0.001)
+                                                         desiredOrientation,
+                                                         maxNumIterations=1000,
+                                                         residualThreshold=0.001)
             return action[:9]
 
         point_1 = macro_action[0]
@@ -384,7 +395,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         point_1_l = goToPosXY(np.hstack([point_1, 0.46]))
         point_2_h = goToPosXY(np.hstack([point_2, 0.6]))
         point_2_l = goToPosXY(np.hstack([point_2, 0.46]))
-
 
         # TODO Revise duration after limitDiff has been introduced
         actionsParts = []
@@ -409,7 +419,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
     def next_step(self):
         self.plan_step += 1
         if self.plan_step < len(self.planned_actions):
-            return self.planned_actions[self.plan_step,:]
+            return self.planned_actions[self.plan_step, :]
         else:
             return np.zeros(9)
 
