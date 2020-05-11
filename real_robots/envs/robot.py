@@ -54,8 +54,12 @@ class Kuka(URDFBasedRobot):
                                 'kuka_gripper.urdf', 'kuka0',
                                 action_dim=self.action_dim, obs_dim=1)
 
-        self.min_joints = np.ones(9)*-np.pi*0.85
-        self.max_joints = np.ones(9)*np.pi*0.85
+        self.min_joints = np.ones(9)*-np.pi*0.944
+        self.max_joints = np.ones(9)*np.pi*0.944
+        self.min_joints[1:9:2] = -np.pi*0.666
+        self.max_joints[1:9:2] = np.pi*0.666
+        self.max_joints[6] = -np.pi*0.972
+        self.max_joints[6] = np.pi*0.972
         self.min_joints[-2:] = 0
         self.max_joints[-2:] = np.pi/2
 
