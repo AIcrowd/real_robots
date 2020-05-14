@@ -12,7 +12,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="package://kuka_gripper_description/meshes/table.obj" scale="1.0 1.6 1.0"/>
+                <mesh filename="package://kuka_gripper_description/meshes/table.obj" scale="1.1 2.0 1.0"/>
             </geometry>
             <material name="table">
                 <texture filename="package://kuka_gripper_description/meshes/table.png"/>
@@ -21,7 +21,7 @@
         <collision>
             <origin rpy="0 0.0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="package://kuka_gripper_description/meshes/table.obj" scale="1.0 1.6 1.0"/>
+                <mesh filename="package://kuka_gripper_description/meshes/table.obj" scale="1.1 2.0 1.0"/>
             </geometry>
         </collision>
     </link>
@@ -30,23 +30,23 @@
             <lateral_friction value="1.0"/>
         </contact>
       <inertial>
-        <origin xyz="0.003 -0.003 0" rpy="0 0 0"/>
+        <origin xyz="0.028 -0.003 0" rpy="0 0 0"/>
         <mass value="0.0"/>
         <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
       </inertial>
       <visual name="upper_visual">
-        <origin xyz="0.003 -0.003 0" rpy="0 0 0"/>
+        <origin xyz="0.028 -0.003 0" rpy="0 0 0"/>
         <geometry>
-            <mesh filename="package://kuka_gripper_description/meshes/table_upper.obj" scale="1.0 1.6 1.0"/>
+            <mesh filename="package://kuka_gripper_description/meshes/table_upper.obj" scale="1.0 2.0 1.0"/>
         </geometry>
             <material name="table">
                 <texture filename="package://kuka_gripper_description/meshes/table.png"/>
             </material>
       </visual>
       <collision name="upper_visual">
-        <origin xyz="0.003 -0.003 0" rpy="0 0 0"/>
+        <origin xyz="0.028 -0.003 0" rpy="0 0 0"/>
         <geometry>
-            <mesh filename="package://kuka_gripper_description/meshes/table_upper.obj" scale="1.0 1.6 1.0"/>
+            <mesh filename="package://kuka_gripper_description/meshes/table_upper.obj" scale="1.0 2.0 1.0"/>
         </geometry>
       </collision>
     </link>

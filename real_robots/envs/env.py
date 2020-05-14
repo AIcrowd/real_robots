@@ -299,7 +299,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
     def limitActionByJoint(self, desired_joints):
         current_joints = self.robot.calc_state()
         # The following specifies maximum change requested for each joint
-        maxDiff = np.array([0.06, 0.06, 0.05, 0.06, 0.07, 0.1, 0.1, 0.1, 0.1])
+        maxDiff = np.array([0.2, 0.2, 0.2, 0.2, 0.2, 0.3, 0.3, 0.1, 0.1])
         minDiff = -maxDiff
         diff = np.minimum(maxDiff, desired_joints-current_joints)
         diff = np.maximum(minDiff, diff)
