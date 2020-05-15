@@ -45,13 +45,13 @@ def generate_plan(point_1, point_2):
     point_2_l = goToPosXY(np.hstack([point_2, 0.46]))
 
     actionsParts = []
-    actionsParts += [np.linspace(home2, home2, n_timesteps)]
-    actionsParts += [np.linspace(point_1_h, point_1_h, n_timesteps)]
-    actionsParts += [np.linspace(point_1_l, point_1_l, 50)]
+    actionsParts += [np.tile(home2, (100, 1))]
+    actionsParts += [np.tile(point_1_h, (100, 1))]
+    actionsParts += [np.tile(point_1_l, (50, 1))]
     actionsParts += [interpolate3D(np.hstack([point_1, 0.46]), np.hstack([point_2, 0.46]), 500)]
-    actionsParts += [np.linspace(point_2_h, point_2_h, 50)]
-    actionsParts += [np.linspace(home2, home2, n_timesteps)]
-    actionsParts += [np.linspace(home, home, n_timesteps)]
+    actionsParts += [np.tile(point_2_h, (50, 1))]
+    actionsParts += [np.tile(home2, (100, 1))]
+    actionsParts += [np.tile(home, (100, 1))]
 
     raw_actions = np.vstack(actionsParts)
 

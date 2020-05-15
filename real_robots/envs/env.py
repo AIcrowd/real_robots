@@ -374,8 +374,11 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
     def generate_plan(self, macro_action):
 
-        n_timesteps = 100
+        point_1 = macro_action[0]
+        point_2 = macro_action[1]
+
         home = np.zeros(9)
+
         home2 = np.zeros(9)
         home2[5] = np.pi / 2
         home2[6] = np.pi / 2
@@ -388,33 +391,38 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                                                          residualThreshold=0.001)
             return action[:9]
 
-        point_1 = macro_action[0]
-        point_2 = macro_action[1]
+        def interpolate3D(p1, p2, steps):
+            p1 = np.array(p1)
+            p2 = np.array(p2)
+            dist = np.linalg.norm(p2 - p1)
+            pieces = int(dist / 0.05) + 1
+            pieces = min(pieces, steps)
+            coords = np.linspace(p1, p2, pieces + 1)
+            joints = np.zeros((steps, 9))
+            chunk = int(steps/pieces)
+            for i, coord in enumerate(coords[1:]):
+                joints[i*chunk:, :] = goToPosXY(coord)
+            return joints
 
         point_1_h = goToPosXY(np.hstack([point_1, 0.6]))
         point_1_l = goToPosXY(np.hstack([point_1, 0.46]))
         point_2_h = goToPosXY(np.hstack([point_2, 0.6]))
         point_2_l = goToPosXY(np.hstack([point_2, 0.46]))
 
-        # TODO Revise duration after limitDiff has been introduced
         actionsParts = []
-        actionsParts += [np.linspace(home, home2, n_timesteps)]
-        actionsParts += [np.linspace(home2, point_1_h, n_timesteps)]
-        actionsParts += [np.linspace(point_1_h, point_1_h, n_timesteps)]
-        actionsParts += [np.linspace(point_1_h, point_1_l, n_timesteps)]
-        actionsParts += [np.linspace(point_1_l, point_1_l, n_timesteps)]
-        actionsParts += [np.linspace(point_1_l, point_2_l, n_timesteps)]
-        actionsParts += [np.linspace(point_2_l, point_2_l, n_timesteps)]
-        actionsParts += [np.linspace(point_2_l, point_2_h, n_timesteps)]
-        actionsParts += [np.linspace(point_2_h, point_2_h, n_timesteps)]
-        actionsParts += [np.linspace(point_2_h, home2, n_timesteps)]
-        actionsParts += [np.linspace(home2, home, n_timesteps)]
-        actionsParts += [np.linspace(home, home, n_timesteps)]
+        actionsParts += [np.tile(home2, (100, 1))]
+        actionsParts += [np.tile(point_1_h, (100, 1))]
+        actionsParts += [np.tile(point_1_l, (50, 1))]
+        actionsParts += [interpolate3D(np.hstack([point_1, 0.46]), np.hstack([point_2, 0.46]), 500)]
+        actionsParts += [np.tile(point_2_h, (50, 1))]
+        actionsParts += [np.tile(home2, (100, 1))]
+        actionsParts += [np.tile(home, (100, 1))]
 
         raw_actions = np.vstack(actionsParts)
 
         self.planned_actions = raw_actions
         self.plan_step = -1
+
 
     def next_step(self):
         self.plan_step += 1
