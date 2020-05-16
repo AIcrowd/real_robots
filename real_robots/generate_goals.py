@@ -77,21 +77,25 @@ class Position:
 
 def generatePosition(env, obj, fixed=False, tablePlane=None):
     if tablePlane is None:
-        min_x = -.45
-        max_x = .10
+        min_x = -.25
+        max_x = .25
     elif tablePlane:
-        min_x = -.45
-        max_x = -.1
+        min_x = -.25
+        max_x = .05
     else:
-        min_x = 0
-        max_x = .10
+        min_x = .10
+        max_x = .25
 
-    min_y = -.45 #check this
+    min_y = -.45
     max_y = .45
 
     x = np.random.rand()*(max_x-min_x)+min_x
     y = np.random.rand()*(max_y-min_y)+min_y
-    z = 0.45
+
+    if x <= 0.05:
+        z = 0.45
+    else:
+        z = 0.55
 
     if fixed:
         orientation = basePosition[obj][3:]
@@ -407,14 +411,14 @@ def generateGoalREAL2020(env):
     return goal
 
 
-def visualizeGoalDistribution(all_goals):
+def visualizeGoalDistribution(all_goals, images=True):
     import matplotlib.pyplot as plt
     challenges = np.unique([goal.challenge for goal in all_goals])  
     fig, axes = plt.subplots(max(2,len(challenges)), 3)
     for c, challenge in enumerate(challenges):
         goals = [goal for goal in all_goals if goal.challenge == challenge]
         if len(goals) > 0:
-            if False:
+            if images:
                 #Superimposed images view
                 tomatos = sum([goal.mask == 2 for goal in goals])
                 mustards = sum([goal.mask == 3 for goal in goals])
@@ -424,9 +428,9 @@ def visualizeGoalDistribution(all_goals):
                 axes[c, 2].imshow(cubes, cmap='gray')
             else:
                 #Positions scatter view
-                for i, o in enumerate(goal.final_state.keys()):
+                for i, o in enumerate(goals[0].final_state.keys()):
                     positions = np.vstack([goal.final_state[o] for goal in goals])
-                    axes[i, 2].scatter(positions[:, 0], positions[:, 1])
+                    axes[c, i].scatter(positions[:, 0], positions[:, 1])
 
     plt.show()
 
