@@ -2,7 +2,7 @@
 <robot name="mustard" xmlns:xacro="http://www.ros.org/wiki/xacro">
     <link name="mustard">
         <contact>
-            <restitution value="0.5" />
+            <restitution value="0.1" />
             <rolling_friction value="0.01"/>
             <spinning_friction value="0.01"/>
         </contact>
