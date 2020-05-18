@@ -10,6 +10,7 @@ import math
 
 basePosition = None
 slow = False
+render = False
 
 
 def pairwise_distances(a):
@@ -93,9 +94,9 @@ def generatePosition(env, obj, fixed=False, tablePlane=None):
     y = np.random.rand()*(max_y-min_y)+min_y
 
     if x <= 0.05:
-        z = 0.45
+        z = 0.40
     else:
-        z = 0.55
+        z = 0.50
 
     if fixed:
         orientation = basePosition[obj][3:]
@@ -453,11 +454,10 @@ def main(seed=None, n_goals=0, n_obj=0):
     np.random.seed(seed)
     allgoals = []
     env = gym.make('REALRobot2020-R1J{}-v0'.format(n_obj))
+    if render:
+        env.render('human')
     env.reset()
-#        pos = env.robot.object_poses['mustard'][:]
-#        pos[2] = 0.41
-#        orient = env._p.getQuaternionFromEuler(pos[3:])
-#        env.robot.object_bodies['mustard'].reset_pose(pos[:3], orient)
+
     global basePosition
     _, basePosition, _, _, _ = runEnv(env)
 
