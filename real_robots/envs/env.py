@@ -325,6 +325,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         reward = self.reward_func(observation)
 
         done = False
+        self.timestep += 1
         if self.goal_idx < 0:
             if self.timestep >= self.intrinsic_timesteps:
                 done = True
@@ -333,8 +334,6 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                 done = True
 
         info = {}
-
-        self.timestep += 1
 
         return observation, reward, done, info
 
