@@ -43,10 +43,12 @@ class BasePolicy:
         """
         pass
 
-    def end_intrinsic_phase(self):
+    def end_intrinsic_phase(self, observation, reward, done):
         """
         The evaluator will call this function to signal the end of the
         Intrinsic Phase.
+        It passes the observation, reward and done flag values computed at
+        the end of the last step of the Intrinsic Phase.
         """
         pass
 
@@ -73,9 +75,11 @@ class BasePolicy:
         """
         pass
 
-    def end_extrinsic_trial(self):
+    def end_extrinsic_trial(self, observation, reward, done):
         """
         The evaluator will call this function to signal the end of each
         extrinsic trial.
+        It passes the observation, reward and done flag values computed at
+        the end of the last step of the extrinsic trial.
         """
         pass

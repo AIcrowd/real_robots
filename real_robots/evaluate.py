@@ -295,7 +295,7 @@ class EvaluationService:
             trial_number + 1
         self.sync_evaluation_state()
         # Notify the controller that an extrinsic trial ended
-        self.controller.end_extrinsic_trial()
+        self.controller.end_extrinsic_trial(observation, reward, done)
         extrinsic_trial_progress_bar.close()
 
     def run_extrinsic_phase(self):
