@@ -354,7 +354,7 @@ class EvaluationService:
         self.evaluation_state["state"] = "EVALUATION_COMPLETE"
         self.sync_evaluation_state()
         # Notify the controller that the extrinsic phase ended
-        self.controller.end_extrinsic_trial()
+        self.controller.end_extrinsic_phase()
 
         return self.build_score_object()
 
