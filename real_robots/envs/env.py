@@ -154,6 +154,8 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             orientation = self.goal.initial_state[obj][3:]
             self.robot.object_bodies[obj].reset_pose(position, orientation)
 
+        return self.get_observation()
+
     def extrinsicFormula(self, p_goal, p, a_goal, a, w=1):
         pos_dist = np.linalg.norm(p_goal-p)
         pos_const = -np.log(0.25) / 0.05  # Score goes down to 0.25 within 5cm

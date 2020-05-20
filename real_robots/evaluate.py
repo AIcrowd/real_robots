@@ -252,17 +252,17 @@ class EvaluationService:
             self.evaluation_state["state"] = "INTRINSIC_PHASE_COMPLETE"
             self.sync_evaluation_state()
             # Notify the controller that the intrinsic phase ended
-            self.controller.end_intrinsic_phase()
+            self.controller.end_intrinsic_phase(observation, reward, done)
         else:
             print("[WARNING] Skipping Intrinsic Phase as intrinsic_timesteps = 0 or False")  # noqa
             self.evaluation_state["state"] = "INTRINSIC_PHASE_SKIPPED"
             self.sync_evaluation_state()
 
     def run_extrinsic_trial(self, trial_number):
-        observation = self.env.reset()
+        self.env.reset()
         reward = 0
         done = False
-        self.env.set_goal()
+        observation = self.env.set_goal()
 
         # Notify the controller that an extrinsic trial started
         self.controller.start_extrinsic_trial()
