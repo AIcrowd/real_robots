@@ -4,12 +4,12 @@
 Yes.
 
 * Can I generate different goals for local testing?  
-Yes, see [here](https://github.com/AIcrowd/real_robots/wiki/Script-for-generating-new-goal-sets).  
-You will be able to generate any amount of goals of each category (2D, 2.5D, 3D) and also to specify how many objects have to be moved from the initial state to reach the goal in the 2D and 2.5D categories.
+Yes, see [here](wiki/Script-for-generating-new-goal-sets).  
+You will be able to generate any amount of goals and also to specify how many objects are present in the environment.
 
 * FileNotFoundError - goals_dataset.npy.npz  
 The environment assumes there is a `goals_dataset.npy.npz` file in the current directory, unless you use the `set_goals_dataset_path` function to specificy otherwise.
-You can either generate a goal dataset using the [command `real-robots-generate-goals`](https://github.com/AIcrowd/real_robots/wiki/Script-for-generating-new-goal-sets) or you can download one at the following link: https://aicrowd-production.s3.eu-central-1.amazonaws.com/misc/REAL-Robots/goals.npy.npz 
+You can either generate a goal dataset using the [command `real-robots-generate-goals`](wiki/Script-for-generating-new-goal-sets) or you can find one in the REAL2020 Starter Kit.
 
 ## Known issues
 
