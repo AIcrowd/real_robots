@@ -12,11 +12,11 @@ from real_robots.policy import BasePolicy
 class RandomPolicy(BasePolicy):
     def __init__(self, action_space):
         self.action_space = action_space
-        self.action = np.zeros(action_space.shape[0])
-        self.action += -np.pi*0.5
+        self.action = action_space.sample()
 
     def step(self, observation, reward, done):
-        self.action += 0.4*np.pi*np.random.randn(self.action_space.shape[0])
+        if np.random.rand() < 0.05:
+            self.action = self.action_space.sample()
         return self.action
 
 
@@ -54,11 +54,11 @@ def demo(args=None):
         """ # noqa
     )
     click.echo("1) Testing setup without visualisation : ")
-    env = gym.make("REALRobot-v0")
+    env = gym.make("REALRobot2020-R2J3-v0")
     pi = RandomPolicy(env.action_space)
     run_episode(env, pi)
     click.echo("2) Testing setup with visualisation : ")
-    env = gym.make("REALRobot-v0")
+    env = gym.make("REALRobot2020-R2J3-v0")
     run_episode(env, pi, visualize=True)
     click.echo("################ All Good \m/ !! Best of Luck !! ################")  # noqa: E501,W291
     return 0
