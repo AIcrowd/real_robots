@@ -86,7 +86,8 @@ result, detailed_scores = real_robots.evaluate(
                 visualize=False,
                 goals_dataset_path='goals-REAL2020-s2020-50-1.npy.npz'
             )
-#  NOTE : You can find goals-REAL2020-s2020-50-1.npy.npz file in the Starter Kit repository or generate one using the generate_goals command.
+# NOTE : You can find goals-REAL2020-s2020-50-1.npy.npz file in the REAL2020 Starter Kit repository
+# or you can generate one using the real-robots-generate-goals command.
 #
 print(result)
 # {'score_REAL2020': 0.06529471503519801, 'score_total': 0.06529471503519801}
