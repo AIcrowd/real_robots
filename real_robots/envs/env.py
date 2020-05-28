@@ -272,7 +272,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         return observation
 
-    def get_observation_extended(self, camera_on=False):
+    def get_observation_extended(self, camera_on=True):
 
         joints = self.robot.calc_state()
         sensors = self.robot.get_touch_sensors()
