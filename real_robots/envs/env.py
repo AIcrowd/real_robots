@@ -520,7 +520,7 @@ class EyeCamera:
                 width=self.render_width, height=self.render_height,
                 viewMatrix=view_matrix,
                 projectionMatrix=proj_matrix,
-                renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
+                renderer=pybullet.COV_ENABLE_TINY_RENDERER
                 )
 
         rgb_array = np.array(px).reshape(self.render_height,
@@ -553,7 +553,7 @@ class EyeCamera:
                 width=self.render_width, height=self.render_height,
                 viewMatrix=view_matrix,
                 projectionMatrix=proj_matrix,
-                renderer=pybullet.ER_BULLET_HARDWARE_OPENGL
+                renderer=pybullet.COV_ENABLE_TINY_RENDERER
                 )
 
         rgb_array = np.array(px).reshape(self.render_height,
