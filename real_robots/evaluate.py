@@ -19,21 +19,24 @@ class EvaluationService:
 
     Parameters
     ----------
-    Controller
-        An example controller which should expose a `step` function, for
-        the evaluator to compute the `action` given observation, reward
-        and done info
-
-    intrinsic_timesteps: int, bool
-        Maximum number of timesteps in the Intrinsic phase.
-        If set to False, then
+    Controller: class
+        An example controller which should expose a `step` function and be a
+        subclass of BasePolicy
+    environment: string
+        "R1" or "R2", which represent Round1 and Round2 of the competition
+    action_type: string
+        "cartesian", "joints" or "macro_action" action type
+    n_objects: int
+        number of objects on the table: 1, 2 or 3
+    intrinsic_timesteps: int
+        Number of timesteps in the Intrinsic phase (default 15e6)
     extrinsic_timesteps: int
-        Maximum number of timesteps in the Extrinsic phase
+        Number of timesteps in the Extrinsic phase (default 10e3)
     extrinsic_trials: int
-        Total number of trials in the extrinsic phase
+        Total number of trials in the extrinsic phase (default 50)
     visualize: bool
-        Boolean flag which enables or disables the visualizer when
-        running the evaluation
+        Boolean flag which enables or disables the visualization GUI
+        when running the evaluation
     goals_dataset_path: str
         Path to a goals dataset
     """

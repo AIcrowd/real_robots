@@ -20,6 +20,20 @@ class BasePolicy:
                 - "goal"
                     Image of the goal, showing how the objects
                     should be arranged in the environment.
+            If the environment is "R1" (during Round 1), these additional
+            observations are also provided in the same dictionary:
+                - "object_positions"
+                    a dictionary with a key for each object on the table with
+                    associated position and orientation of the object
+                - "goal_positions"
+                    a dictionary with the goal position of each object
+                - "mask"
+                    a segmentation mask of the retina image where for each
+                    pixel there is an integer index that identifies which
+                    object is in that pixel (i.e. -1 is a background pixel,
+                    0 is the robot, 1 is the table, etc).
+                - "goal_mask"
+                    a segmentation mask of the goal image
         reward: float
             This will be always zero.
         done: bool
