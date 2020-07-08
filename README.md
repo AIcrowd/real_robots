@@ -39,24 +39,22 @@ from real_robots.policy import BasePolicy
 class RandomPolicy(BasePolicy):
     def __init__(self, action_space):
         self.action_space = action_space
-        self.action = np.zeros(action_space.shape[0])
-        self.action += -np.pi*0.5
+        self.action = action_space.sample()
 
     def step(self, observation, reward, done):
-        self.action += 0.4*np.pi*np.random.randn(self.action_space.shape[0])
+        if np.random.rand() < 0.05:
+            self.action = self.action_space.sample()
         return self.action
 
-env = gym.make("REALRobot-v0")
+env = gym.make("REALRobot2020-R2J3-v0")
 pi = RandomPolicy(env.action_space)
 env.render("human")
 
 observation = env.reset()
 reward, done = 0, False
-for t in range(40):
-    time.sleep(1./1000.)
+for t in range(40):    
     action = pi.step(observation, reward, done)
-    observation, reward, done, info = env.step(action)
-    print(t, reward)
+    observation, reward, done, info = env.step(action)    
 ```
 
 ## Local Evaluation
@@ -70,31 +68,34 @@ from real_robots.policy import BasePolicy
 class RandomPolicy(BasePolicy):
     def __init__(self, action_space):
         self.action_space = action_space
-        self.action = np.zeros(action_space.shape[0])
-        self.action += -np.pi*0.5
+        self.action = action_space.sample()
 
     def step(self, observation, reward, done):
-        self.action += 0.4*np.pi*np.random.randn(self.action_space.shape[0])
+        if np.random.rand() < 0.05:
+            self.action = self.action_space.sample()
         return self.action
 
 result, detailed_scores = real_robots.evaluate(
                 RandomPolicy,
-                intrinsic_timesteps=40,
-                extrinsic_timesteps=40,
-                extrinsic_trials=5,
-                visualize=True,
-                goals_dataset_path="./goals.npy.npz",
+                environment='R1',
+                action_type='macro_action',
+                n_objects=1,
+                intrinsic_timesteps=1e3,
+                extrinsic_timesteps=1e3,
+                extrinsic_trials=3,
+                visualize=False,
+                goals_dataset_path='goals-REAL2020-s2020-50-1.npy.npz'
             )
-#  NOTE : You can find a sample goals.npy.npz file at
+# NOTE : You can find goals-REAL2020-s2020-50-1.npy.npz file in the REAL2020 Starter Kit repository
+# or you can generate one using the real-robots-generate-goals command.
 #
-#  https://aicrowd-production.s3.eu-central-1.amazonaws.com/misc/REAL-Robots/goals.npy.npz
 print(result)
-# {'score_total': 0.2327459533906755, 'score_2D': 0.6982378601720265, 'score_2.5D': 0, 'score_3D': 0}
+# {'score_REAL2020': 0.06529471503519801, 'score_total': 0.06529471503519801}
 print(detailed_scores)
-# {'2D': [0.6646365565451159, 0.6632591441787807, 0.7569003923985664, 0.7167885964780916, 0.6896046112595778]}
+# {'REAL2020': [0.00024387094790936833, 0.19553060745741896, 0.00010966670026571288]}
 ```
 
-See also our [FAQ](https://github.com/AIcrowd/real_robots/blob/master/FAQ.md).
+See also our [FAQ](FAQ.md).
 
 -   Free software: MIT license
 
@@ -102,7 +103,7 @@ See also our [FAQ](https://github.com/AIcrowd/real_robots/blob/master/FAQ.md).
 
 The REALRobot environment is a standard gym environment.  
 It includes a 7DoF kuka arm with a 2DoF gripper, a table with 3 objects on it and a camera looking at the table from the top. 
-For more info on the environment see [environment.md](https://github.com/AIcrowd/real_robots/blob/master/environment.md).
+For more info on the environment see [environment.md](environment.md).
 
 ## Authors
 

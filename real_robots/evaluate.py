@@ -19,29 +19,35 @@ class EvaluationService:
 
     Parameters
     ----------
-    Controller
-        An example controller which should expose a `step` function, for
-        the evaluator to compute the `action` given observation, reward
-        and done info
-
-    intrinsic_timesteps: int, bool
-        Maximum number of timesteps in the Intrinsic phase.
-        If set to False, then
+    Controller: class
+        An example controller which should expose a `step` function and be a
+        subclass of BasePolicy
+    environment: string
+        "R1" or "R2", which represent Round1 and Round2 of the competition
+    action_type: string
+        "cartesian", "joints" or "macro_action" action type
+    n_objects: int
+        number of objects on the table: 1, 2 or 3
+    intrinsic_timesteps: int
+        Number of timesteps in the Intrinsic phase (default 15e6)
     extrinsic_timesteps: int
-        Maximum number of timesteps in the Extrinsic phase
+        Number of timesteps in the Extrinsic phase (default 10e3)
     extrinsic_trials: int
-        Total number of trials in the extrinsic phase
+        Total number of trials in the extrinsic phase (default 50)
     visualize: bool
-        Boolean flag which enables or disables the visualizer when
-        running the evaluation
+        Boolean flag which enables or disables the visualization GUI
+        when running the evaluation
     goals_dataset_path: str
         Path to a goals dataset
     """
     def __init__(self,
                  Controller,
-                 intrinsic_timesteps=1e7,
-                 extrinsic_timesteps=2e3,
-                 extrinsic_trials=350,
+                 environment='R1',
+                 action_type='macro_action',
+                 n_objects=1,
+                 intrinsic_timesteps=15e6,
+                 extrinsic_timesteps=10e3,
+                 extrinsic_trials=50,
                  visualize=True,
                  goals_dataset_path="./goals.npy.npz"):
 
@@ -53,7 +59,7 @@ class EvaluationService:
         self.goals_dataset_path = goals_dataset_path
 
         # Start Setup
-        self.setup_gym_env()
+        self.setup_gym_env(environment, action_type, n_objects)
         self.setup_controller()
         self.setup_evaluation_state()
         self.setup_scores()
@@ -134,11 +140,29 @@ class EvaluationService:
                 self.sync_evaluation_state()
             pass
 
-    def setup_gym_env(self):
-        self.env = gym.make('REALRobot-v0')
+    def setup_gym_env(self, environment, action_type, n_objects):
+
+        if environment in ["R1", "R2"]:
+            rnd = environment
+        else:
+            raise Exception("Environment type has to be either R1 or R2")
+
+        if action_type in ['joints', 'cartesian', 'macro_action']:
+            act = action_type[0].upper()
+        else:
+            raise Exception("Action type has to be either 'joints', 'cartesian',"
+                            "or 'macro_action'")
+
+        if isinstance(n_objects, int) and 1 <= n_objects <= 3:
+            n_obj = n_objects
+        else:
+            raise Exception("Number of objects has to be 1, 2 or 3.")
+
+        envString = 'REALRobot2020-{}{}{}-v0'.format(rnd, act, n_obj)
+        self.env = gym.make(envString)
         self.env.set_goals_dataset_path(self.goals_dataset_path)
-        self.env.intrinsic_timesteps = self.intrinsic_timesteps  # default=1e7
-        self.env.extrinsic_timesteps = self.extrinsic_timesteps  # default=2e3
+        self.env.intrinsic_timesteps = self.intrinsic_timesteps  # default=15e6
+        self.env.extrinsic_timesteps = self.extrinsic_timesteps  # default=10e3
 
         if self.visualize:
             self.env.render('human')
@@ -231,17 +255,17 @@ class EvaluationService:
             self.evaluation_state["state"] = "INTRINSIC_PHASE_COMPLETE"
             self.sync_evaluation_state()
             # Notify the controller that the intrinsic phase ended
-            self.controller.end_intrinsic_phase()
+            self.controller.end_intrinsic_phase(observation, reward, done)
         else:
             print("[WARNING] Skipping Intrinsic Phase as intrinsic_timesteps = 0 or False")  # noqa
             self.evaluation_state["state"] = "INTRINSIC_PHASE_SKIPPED"
             self.sync_evaluation_state()
 
     def run_extrinsic_trial(self, trial_number):
-        observation = self.env.reset()
+        self.env.reset()
         reward = 0
         done = False
-        self.env.set_goal()
+        observation = self.env.set_goal()
 
         # Notify the controller that an extrinsic trial started
         self.controller.start_extrinsic_trial()
@@ -274,7 +298,7 @@ class EvaluationService:
             trial_number + 1
         self.sync_evaluation_state()
         # Notify the controller that an extrinsic trial ended
-        self.controller.end_extrinsic_trial()
+        self.controller.end_extrinsic_trial(observation, reward, done)
         extrinsic_trial_progress_bar.close()
 
     def run_extrinsic_phase(self):
@@ -327,19 +351,19 @@ class EvaluationService:
         self.evaluation_state["state"] = "EXTRINSIC_PHASE_COMPLETE"
         self.evaluation_state["score"] = {
             "score": self.evaluation_state["evaluation_score"]["score_total"],
-            "score_secondary" : self.evaluation_state["evaluation_score"]["score_2D"]  # noqa
+            "score_secondary" : self.evaluation_state["evaluation_score"]["score_REAL2020"]  # noqa
         }
         self.evaluation_state["meta"] = self.evaluation_state["evaluation_score"]  # noqa
         self.evaluation_state["state"] = "EVALUATION_COMPLETE"
         self.sync_evaluation_state()
         # Notify the controller that the extrinsic phase ended
-        self.controller.end_extrinsic_trial()
+        self.controller.end_extrinsic_phase()
 
         return self.build_score_object()
 
     def build_score_object(self):
         total_score = 0
-        challenges = ['2D', '2.5D', '3D']
+        challenges = ['REAL2020']
 
         score_object = {}
         for key in challenges:
@@ -361,14 +385,20 @@ class EvaluationService:
 
 
 def evaluate(Controller,
-             intrinsic_timesteps=1e7,
-             extrinsic_timesteps=2e3,
-             extrinsic_trials=350,
+             environment='R1',
+             action_type='macro_action',
+             n_objects=1,
+             intrinsic_timesteps=15e6,
+             extrinsic_timesteps=10e3,
+             extrinsic_trials=50,
              visualize=True,
              goals_dataset_path="./goals.npy.npz"):
 
     evaluation_service = EvaluationService(
         Controller,
+        environment,
+        action_type,
+        n_objects,
         intrinsic_timesteps,
         extrinsic_timesteps,
         extrinsic_trials,

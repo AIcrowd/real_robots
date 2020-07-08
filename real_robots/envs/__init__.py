@@ -1,1 +1,1 @@
-from .env import REALRobotEnv, REALRobotEnvSingleObj, Goal  # noqa
+from .env import REALRobotEnv, Goal  # noqa

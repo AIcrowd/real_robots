@@ -20,6 +20,20 @@ class BasePolicy:
                 - "goal"
                     Image of the goal, showing how the objects
                     should be arranged in the environment.
+            If the environment is "R1" (during Round 1), these additional
+            observations are also provided in the same dictionary:
+                - "object_positions"
+                    a dictionary with a key for each object on the table with
+                    associated position and orientation of the object
+                - "goal_positions"
+                    a dictionary with the goal position of each object
+                - "mask"
+                    a segmentation mask of the retina image where for each
+                    pixel there is an integer index that identifies which
+                    object is in that pixel (i.e. -1 is a background pixel,
+                    0 is the robot, 1 is the table, etc).
+                - "goal_mask"
+                    a segmentation mask of the goal image
         reward: float
             This will be always zero.
         done: bool
@@ -43,10 +57,12 @@ class BasePolicy:
         """
         pass
 
-    def end_intrinsic_phase(self):
+    def end_intrinsic_phase(self, observation, reward, done):
         """
         The evaluator will call this function to signal the end of the
         Intrinsic Phase.
+        It passes the observation, reward and done flag values computed at
+        the end of the last step of the Intrinsic Phase.
         """
         pass
 
@@ -73,9 +89,11 @@ class BasePolicy:
         """
         pass
 
-    def end_extrinsic_trial(self):
+    def end_extrinsic_trial(self, observation, reward, done):
         """
         The evaluator will call this function to signal the end of each
         extrinsic trial.
+        It passes the observation, reward and done flag values computed at
+        the end of the last step of the extrinsic trial.
         """
         pass

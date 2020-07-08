@@ -4,6 +4,7 @@ import pybullet_data
 import os
 import gym
 from robot_bases import BodyPart
+import pybullet
 
 
 class Kuka(URDFBasedRobot):
@@ -16,12 +17,12 @@ class Kuka(URDFBasedRobot):
             "tomato"]
 
     object_poses = {
-            "table":   [0.00,  0.00,  0.000, 0.00, 0.00, 0.00],
-            "orange":  [-0.10,  0.00,  0.460, 0.00, 0.00, 0.00],
-            "mustard": [-0.05, -0.40,  0.480, 1.57, 3.14, 1.57],
-            "cube":    [-0.10,  0.00,  0.470, 0.00, 0.00, 0.00],
-            "tomato":  [-0.10,  0.40,  0.485, 0.00, 0.00, 0.00]}
-
+            "table":   [  0.00000,  0.00000,  0.08000, 0.00000, 0.00000, 0.00000],
+            "orange":  [  0.20000, -0.15000,  0.45000, 0.00000, 0.00000, 0.00000],
+            "mustard": [ -0.10000,  0.30000,  0.45000, 1.57080, 3.14159, 0.00000],
+            "cube":    [ -0.10000,  0.00000,  0.45000, 0.00000, 0.00000, 0.00000],
+            "tomato":  [ -0.10000, -0.30000,  0.45000, 0.00000, 0.00000, 0.00000]}
+    
     num_joints = 9
     num_kuka_joints = 7
     num_gripper_joints = 2
@@ -33,12 +34,19 @@ class Kuka(URDFBasedRobot):
         JOINT_POSITIONS = "joint_positions"
         TOUCH_SENSORS = "touch_sensors"
         RETINA = "retina"
+        MASK = "mask"
+        OBJ_POS = "object_positions"
         GOAL = "goal"
+        GOAL_MASK = "goal_mask"
+        GOAL_POS = "goal_positions"
 
-    def __init__(self):
+    def __init__(self, additional_obs=False, objects=3):
 
-        self.robot_position = [-0.8, 0, 0]
+        self.robot_position = [-0.55, 0, -0.04]
         self.contact_threshold = 0.1
+
+        self.used_objects = ["table", "cube",
+                                   "tomato", "mustard"][:objects+1]
 
         self.action_dim = self.num_joints
 
@@ -46,15 +54,60 @@ class Kuka(URDFBasedRobot):
                                 'kuka_gripper.urdf', 'kuka0',
                                 action_dim=self.action_dim, obs_dim=1)
 
-        self.observation_space = gym.spaces.Dict({
-            self.ObsSpaces.JOINT_POSITIONS: gym.spaces.Box(
-                -np.inf, np.inf, [self.num_joints], dtype=float),
-            self.ObsSpaces.TOUCH_SENSORS: gym.spaces.Box(
-                0, np.inf, [self.num_touch_sensors], dtype=float),
-            self.ObsSpaces.RETINA: gym.spaces.Box(
-                0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float),
-            self.ObsSpaces.GOAL: gym.spaces.Box(
-                0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float)})
+        self.min_joints = np.ones(9)*-np.pi*0.944
+        self.max_joints = np.ones(9)*np.pi*0.944
+        self.min_joints[0] = -np.pi*0.666 # Restricted range (min -0.944)
+        self.max_joints[0] = np.pi*0.666 # Restricted range (max 0.944)
+        self.min_joints[1:9:2] = -np.pi*0.666
+        self.max_joints[1:9:2] = np.pi*0.666
+        self.min_joints[6] = -np.pi*0.972
+        self.max_joints[6] = np.pi*0.972
+        self.min_joints[-2:] = 0
+        self.max_joints[-2:] = np.pi/2
+
+        self.action_space = gym.spaces.Box(low=self.min_joints,
+                                           high=self.max_joints,
+                                           dtype=float)
+
+        if additional_obs:
+            obj_obs = {}
+            for obj in self.used_objects[1:]:
+                high = np.array([np.finfo(np.float32).max,
+                                 np.finfo(np.float32).max,
+                                 np.finfo(np.float32).max,
+                                 1.0,
+                                 1.0,
+                                 1.0,
+                                 1.0])
+                obj_obs[obj] = gym.spaces.Box(-high, high, dtype=float)
+
+            self.observation_space = gym.spaces.Dict({
+                self.ObsSpaces.JOINT_POSITIONS: gym.spaces.Box(
+                    -np.inf, np.inf, [self.num_joints], dtype=float),
+                self.ObsSpaces.TOUCH_SENSORS: gym.spaces.Box(
+                    0, np.inf, [self.num_touch_sensors], dtype=float),
+                self.ObsSpaces.RETINA: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=np.uint8),
+                self.ObsSpaces.GOAL: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=np.uint8),
+                self.ObsSpaces.MASK: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width], dtype=np.int32),
+                self.ObsSpaces.GOAL_MASK: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width], dtype=np.int32),
+                self.ObsSpaces.OBJ_POS: gym.spaces.Dict(obj_obs)
+                }
+            )
+        else:
+            self.observation_space = gym.spaces.Dict({
+                self.ObsSpaces.JOINT_POSITIONS: gym.spaces.Box(
+                    -np.inf, np.inf, [self.num_joints], dtype=float),
+                self.ObsSpaces.TOUCH_SENSORS: gym.spaces.Box(
+                    0, np.inf, [self.num_touch_sensors], dtype=float),
+                self.ObsSpaces.RETINA: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float),
+                self.ObsSpaces.GOAL: gym.spaces.Box(
+                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float)}
+            )
 
         self.target = "orange"
 
@@ -66,6 +119,12 @@ class Kuka(URDFBasedRobot):
         bullet_client.resetSimulation()
         super(Kuka, self).reset(bullet_client)
         return self.calc_state()
+
+    def reset_object(self, obj_name):
+        position = self.object_poses[obj_name][:3]
+        eulerOrientation = self.object_poses[obj_name][3:]
+        orientation = pybullet.getQuaternionFromEuler(eulerOrientation)
+        self.object_bodies[obj_name].reset_pose(position, orientation)
 
     def get_contacts(self, forces=False):
 
@@ -115,6 +174,7 @@ class Kuka(URDFBasedRobot):
                              format(obj_name), *pos)
             self.object_bodies[obj_name] = obj
             self.object_names.update({obj.bodies[0]: obj_name})
+            self.reset_object(obj_name)
 
         for _, joint in self.jdict.items():
             joint.reset_current_position(0, 0)
@@ -122,12 +182,12 @@ class Kuka(URDFBasedRobot):
         for name, part in self.parts.items():
             self.robot_parts.update({part.bodyPartIndex: name})
 
+
     def apply_action(self, a):
         assert (np.isfinite(a).all())
         assert(len(a) == self.num_joints)
 
-        a[:-2] = np.maximum(-np.pi*0.5, np.minimum(np.pi*0.5, a[:-2]))
-        a[-2:] = np.maximum(0, np.minimum(np.pi*0.5, a[-2:]))
+        a = np.maximum(self.min_joints, (np.minimum(a, self.max_joints)))
         a[-1] = np.maximum(0, np.minimum(2*a[-2], a[-1]))
 
         for i, j in enumerate(a[:-2]):
@@ -150,7 +210,6 @@ class Kuka(URDFBasedRobot):
 
 
 def get_object(bullet_client, object_file, x, y, z, roll=0, pitch=0, yaw=0):
-
     position = [x, y, z]
     orientation = bullet_client.getQuaternionFromEuler([roll, pitch, yaw])
     body = bullet_client.loadURDF(
