@@ -272,135 +272,49 @@ def isOnTable(obj, state):
     return False
 
 
-def generateGoal2D(env, n_objects):
-
-    print("Generating GOAL2D with {} object(s) moving..".format(n_objects))
-
-    objects = env.robot.used_objects[1:]
-    objOnTable = {}
-    for obj in objects:
-        objOnTable[obj] = True
-
-    found = False
-    while not(found):
-        initial = drawPosition(env, fixedOrientation=True,
-                               minSeparation=0.15, objOnTable=objOnTable)
-        found = True
-
-        for obj in objects:
-            if not(isOnTable(obj, initial.fixed_state)):
-                found = False
-                print("{} is not on table...".format(obj))
-
-    found = False
-    while not(found):
-        if n_objects == 1:
-            fix_objs = [o for o in ['tomato', 'mustard'] if o in objects]
-            final = drawPosition(env, fixedPositions=initial.fixed_state,
-                                 fixedObjects=fix_objs, fixedOrientation=True,
-                                 minSeparation=0.15, objOnTable=objOnTable)
-        elif n_objects == 2:
-            fix_objs = [o for o in ['mustard'] if o in objects]
-            final = drawPosition(env, fixedPositions=initial.fixed_state,
-                                 fixedObjects=fix_objs, fixedOrientation=True,
-                                 minSeparation=0.15, objOnTable=objOnTable)
-        else:
-            final = drawPosition(env, fixedOrientation=True,
-                                 minSeparation=0.15, objOnTable=objOnTable)
-
-        found = True
-
-        objects = env.robot.used_objects[1:]
-        for obj in objects:
-            if not(isOnTable(obj, final.fixed_state)):
-                found = False
-                print("{} is not on table...".format(obj))
-
-    goal = Goal()
-    goal.challenge = '2D'
-    goal.subtype = str(n_objects)
-    goal.initial_state = initial.fixed_state
-    goal.final_state = final.fixed_state
-    goal.retina_before = initial.retina
-    goal.retina = final.retina
-    goal.mask = final.mask
-
-    print("SUCCESSFULL generation of GOAL2D with {} object(s)!!!!"
-          .format(n_objects))
-
-    return goal
-
-
-def generateGoal25D(env, n_objects):
-    print("Generating GOAL2.5D with {} object(s) moving..".format(n_objects))
-
-    initial = drawPosition(env, fixedOrientation=True, minSeparation=0.15)
-
-    objects = env.robot.used_objects[1:]
-    objOnTable = {}
-    for obj in objects:
-        objOnTable[obj] = not(isOnTable(obj, initial.fixed_state))
-
-    found = False
-    while not(found):
-        fix_objs = []
-        if n_objects == 1:
-            fix_objs = [o for o in ['tomato', 'mustard'] if o in objects]
-            final = drawPosition(env, fixedPositions=initial.fixed_state,
-                                 fixedObjects=fix_objs, fixedOrientation=True,
-                                 minSeparation=0.15, objOnTable=objOnTable)
-        elif n_objects == 2:
-            fix_objs = [o for o in ['mustard'] if o in objects]
-            final = drawPosition(env, fixedPositions=initial.fixed_state,
-                                 fixedObjects=fix_objs, fixedOrientation=True,
-                                 minSeparation=0.15, objOnTable=objOnTable)
-        else:
-            final = drawPosition(env, fixedOrientation=True,
-                                 minSeparation=0.15, objOnTable=objOnTable)
-
-        found = True
-        for obj in objects:
-            if obj in fix_objs:
-                continue
-            wasOnTable = isOnTable(obj, initial.fixed_state)
-            isNowOnTable = isOnTable(obj, final.fixed_state)
-            if not(wasOnTable ^ isNowOnTable):
-                found = False
-                print("{} failed to move from shelf to table ({}-{})"
-                      .format(obj, wasOnTable, isNowOnTable))
-
-    goal = Goal()
-    goal.challenge = '2.5D'
-    goal.subtype = str(n_objects)
-    goal.initial_state = initial.fixed_state
-    goal.final_state = final.fixed_state
-    goal.retina_before = initial.retina
-    goal.retina = final.retina
-    goal.mask = final.mask
-
-    print("SUCCESSFULL generation of GOAL25D with {} object(s)!!!!"
-          .format(n_objects))
-
-    return goal
-
-
-def generateGoalREAL2020(env):
+def generateGoalREAL2020(env, n_obj, goal_type, on_shelf = False, min_start_goal_dist = 0.1, min_objects_dist = 0.05):
 
     print("Generating GOAL..")
 
-    found = False
-    while not(found):
-        initial = drawPosition(env, fixedOrientation=True)
-        found = True
+    objOnTable = None
+    if not on_shelf:
+        objects = env.robot.used_objects[1:]
+        objOnTable = {}
+        for obj in objects:
+            objOnTable[obj] = True
 
     found = False
     while not(found):
-        final = drawPosition(env, fixedOrientation=True)
+        initial = drawPosition(env, fixedOrientation=True, objOnTable=objOnTable, minSeparation=min_objects_dist)
         found = True
+
+    
+    at_least_one_on_shelf = False
+    for obj in initial.fixed_state.keys():
+        if isOnShelf(obj, initial.fixed_state) or goal_type == '2D':
+            at_least_one_on_shelf = True 
+            break
+
+    found = False
+    while not(found):
+        found = True
+        final = drawPosition(env, fixedOrientation=True, objOnTable=objOnTable, minSeparation=min_objects_dist)
+
+        for obj in final.fixed_state.keys():
+            if min_start_goal_dist > np.linalg.norm(final.fixed_state[obj][:2]-initial.fixed_state[obj][:2]):
+                found = False
+                continue
+
+        if not at_least_one_on_shelf:
+            found = False
+            for obj in final.fixed_state.keys():
+                if isOnShelf(obj, final.fixed_state):
+                    found = True
+        
 
     goal = Goal()
-    goal.challenge = 'REAL2020'
-    goal.subtype = None
+    goal.challenge = goal_type
+    goal.subtype = str(n_obj)
     goal.initial_state = initial.fixed_state
     goal.final_state = final.fixed_state
     goal.retina_before = initial.retina
@@ -439,17 +353,21 @@ def visualizeGoalDistribution(all_goals, images=True):
 @click.command()
 @click.option('--seed', type=int,
               help='Generate goals using this SEED for numpy.random')
-@click.option('--n_goals', type=int, default=50,
-              help='# of goals')
+@click.option('--n_2d_goals', type=int, default=25,
+              help='# of 2D goals')
+@click.option('--n_25d_goals', type=int, default=15,
+              help='# of 2.5D goals')
+@click.option('--n_3d_goals', type=int, default=10,
+              help='# of 3D goals')
 @click.option('--n_obj', type=int, default=3,
               help='# of objects')
-def main(seed=None, n_goals=0, n_obj=0):
+def main(seed=None, n_2d_goals=25,n_25d_goals=15,n_3d_goals=10, n_obj=3):
     """
         Generates the specified number of goals
         and saves them in a file.\n
-        The file is called goals-REAL2020-s{}-{}-{}.npy.npz
+        The file is called goals-REAL2020-s{}-{}-{}-{}-{}.npy.npz
         where enclosed brackets are replaced with the
-        supplied options (seed, n_goals, n_obj) or 0.
+        supplied options (seed, n_2d_goals=0, n_25d_goals, n_3d_goals, n_obj) or 0.
     """
     np.random.seed(seed)
     allgoals = []
@@ -462,14 +380,20 @@ def main(seed=None, n_goals=0, n_obj=0):
     _, basePosition, _, _, _ = runEnv(env)
 
     # In these for loops, we could add some progress bar...
-    for _ in range(n_goals):
-        allgoals += [generateGoalREAL2020(env)]
+    for _ in range(n_2d_goals):
+        allgoals += [generateGoalREAL2020(env, n_obj, "2D", on_shelf=False, min_start_goal_dist=0.1, min_objects_dist = 0.05)]
 
-    np.savez_compressed('goals-REAL2020-s{}-{}-{}.npy'
-                        .format(seed, n_goals, n_obj), allgoals)
+    for _ in range(n_25d_goals):
+        allgoals += [generateGoalREAL2020(env, n_obj, "2.5D", on_shelf=True, min_start_goal_dist=0.1, min_objects_dist = 0.05)]
+
+    for _ in range(n_3d_goals):
+        allgoals += [generateGoalREAL2020(env, n_obj, "3D", on_shelf=True, min_start_goal_dist=0.1, min_objects_dist = 0)]
+
+    np.savez_compressed('goals-REAL2020-s{}-{}-{}-{}-{}.npy'
+                        .format(seed, n_2d_goals, n_25d_goals, n_3d_goals, n_obj), allgoals)
 
     checkRepeatability(env, allgoals)
-    #visualizeGoalDistribution(allgoals)
+    visualizeGoalDistribution(allgoals)
 
 
 if __name__ == "__main__":

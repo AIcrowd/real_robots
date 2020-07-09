@@ -5,7 +5,6 @@ from .envs import Goal  # noqa F401
 from .policy import BasePolicy
 import numpy as np
 import time
-
 from tqdm.auto import tqdm
 import aicrowd_api
 
@@ -160,7 +159,7 @@ class EvaluationService:
         self.env.set_goals_dataset_path(self.goals_dataset_path)
         self.env.intrinsic_timesteps = self.intrinsic_timesteps  # default=15e6
         self.env.extrinsic_timesteps = self.extrinsic_timesteps  # default=10e3
-
+        
         if self.visualize:
             self.env.render('human')
 
@@ -231,6 +230,8 @@ class EvaluationService:
             steps = 0
             # Notify the controller that the intrinsic phase started
             self.controller.start_intrinsic_phase()
+
+
             while not done:
                 # Call your controller to chose action
                 action = self.controller.step(observation, reward, done)
@@ -257,6 +258,9 @@ class EvaluationService:
             print("[WARNING] Skipping Intrinsic Phase as intrinsic_timesteps = 0 or False")  # noqa
             self.evaluation_state["state"] = "INTRINSIC_PHASE_SKIPPED"
             self.sync_evaluation_state()
+
+        
+        
 
     def run_extrinsic_trial(self, trial_number):
         self.env.reset()
@@ -297,6 +301,7 @@ class EvaluationService:
         # Notify the controller that an extrinsic trial ended
         self.controller.end_extrinsic_trial(observation, reward, done)
         extrinsic_trial_progress_bar.close()
+        
 
     def run_extrinsic_phase(self):
         try:
@@ -327,7 +332,11 @@ class EvaluationService:
         self.sync_evaluation_state()
         # Notify the controller that the extrinsic phase started
         self.controller.start_extrinsic_phase()
+        
+        
+        
         for trial in range(self.extrinsic_trials):
+            
             self.run_extrinsic_trial(trial)
 
             extrinsic_phase_progress_bar.update(1)
@@ -356,6 +365,7 @@ class EvaluationService:
         # Notify the controller that the extrinsic phase ended
         self.controller.end_extrinsic_phase()
 
+        
         return self.build_score_object()
 
     def build_score_object(self):
@@ -402,6 +412,8 @@ def evaluate(Controller,
         visualize,
         goals_dataset_path
         )
+    
     evaluation_service.run_intrinsic_phase()
     evaluation_service.run_extrinsic_phase()
+    
     return evaluation_service.build_score_object(), evaluation_service.scores
