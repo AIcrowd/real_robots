@@ -300,16 +300,17 @@ def generateGoalREAL2020(env, n_obj, goal_type, on_shelf = False, min_start_goal
         found = True
         final = drawPosition(env, fixedOrientation=True, objOnTable=objOnTable, minSeparation=min_objects_dist)
 
-        for obj in final.fixed_state.keys():
-            if min_start_goal_dist > np.linalg.norm(final.fixed_state[obj][:2]-initial.fixed_state[obj][:2]):
-                found = False
-                continue
-
         if not at_least_one_on_shelf:
             found = False
             for obj in final.fixed_state.keys():
                 if isOnShelf(obj, final.fixed_state):
                     found = True
+                    break
+
+        for obj in final.fixed_state.keys():
+            if min_start_goal_dist > np.linalg.norm(final.fixed_state[obj][:2]-initial.fixed_state[obj][:2]):
+                found = False
+                break
         
 
     goal = Goal()
@@ -346,6 +347,8 @@ def visualizeGoalDistribution(all_goals, images=True):
                 for i, o in enumerate(goals[0].final_state.keys()):
                     positions = np.vstack([goal.final_state[o] for goal in goals])
                     axes[c, i].scatter(positions[:, 0], positions[:, 1])
+                    axes[c, i].set_xlim([-0.3, 0.3])
+                    axes[c, i].set_ylim([-0.6, 0.6])
 
     plt.show()
 
@@ -354,20 +357,21 @@ def visualizeGoalDistribution(all_goals, images=True):
 @click.option('--seed', type=int,
               help='Generate goals using this SEED for numpy.random')
 @click.option('--n_2d_goals', type=int, default=25,
-              help='# of 2D goals')
+              help='# of 2D goals (default 25)')
 @click.option('--n_25d_goals', type=int, default=15,
-              help='# of 2.5D goals')
+              help='# of 2.5D goals (default 15)')
 @click.option('--n_3d_goals', type=int, default=10,
-              help='# of 3D goals')
+              help='# of 3D goals (default 10)')
 @click.option('--n_obj', type=int, default=3,
-              help='# of objects')
+              help='# of objects (default 3)')
 def main(seed=None, n_2d_goals=25,n_25d_goals=15,n_3d_goals=10, n_obj=3):
     """
         Generates the specified number of goals
         and saves them in a file.\n
         The file is called goals-REAL2020-s{}-{}-{}-{}-{}.npy.npz
         where enclosed brackets are replaced with the
-        supplied options (seed, n_2d_goals=0, n_25d_goals, n_3d_goals, n_obj) or 0.
+        supplied options (seed, n_2d_goals=0, n_25d_goals, n_3d_goals, n_obj)
+        or the default value.
     """
     np.random.seed(seed)
     allgoals = []
@@ -381,13 +385,13 @@ def main(seed=None, n_2d_goals=25,n_25d_goals=15,n_3d_goals=10, n_obj=3):
 
     # In these for loops, we could add some progress bar...
     for _ in range(n_2d_goals):
-        allgoals += [generateGoalREAL2020(env, n_obj, "2D", on_shelf=False, min_start_goal_dist=0.1, min_objects_dist = 0.05)]
+        allgoals += [generateGoalREAL2020(env, n_obj, "2D", on_shelf=False, min_start_goal_dist=0.2, min_objects_dist = 0.1)]
 
     for _ in range(n_25d_goals):
-        allgoals += [generateGoalREAL2020(env, n_obj, "2.5D", on_shelf=True, min_start_goal_dist=0.1, min_objects_dist = 0.05)]
+        allgoals += [generateGoalREAL2020(env, n_obj, "2.5D", on_shelf=True, min_start_goal_dist=0.2, min_objects_dist = 0.1)]
 
     for _ in range(n_3d_goals):
-        allgoals += [generateGoalREAL2020(env, n_obj, "3D", on_shelf=True, min_start_goal_dist=0.1, min_objects_dist = 0)]
+        allgoals += [generateGoalREAL2020(env, n_obj, "3D", on_shelf=True, min_start_goal_dist=0.2, min_objects_dist = 0)]
 
     np.savez_compressed('goals-REAL2020-s{}-{}-{}-{}-{}.npy'
                         .format(seed, n_2d_goals, n_25d_goals, n_3d_goals, n_obj), allgoals)
