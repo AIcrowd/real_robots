@@ -120,7 +120,7 @@ def generateRealPosition(env, startPositions):
     return actual_image, actual_position, failed, it, mask
 
 
-def checkSeparation(state):
+def checkMinSeparation(state):
     positions = np.vstack([state[obj][:3] for obj in state])
     if len(positions) > 1:
         distances = pairwise_distances(positions)
@@ -129,9 +129,18 @@ def checkSeparation(state):
         clearance = np.inf
     return clearance
 
+def checkMaxSeparation(state):
+    positions = np.vstack([state[obj][:3] for obj in state])
+    if len(positions) > 1:
+        distances = pairwise_distances(positions)
+        clearance = distances[distances > 0].max()
+    else:
+        clearance = np.sup
+    return clearance
+
 
 def drawPosition(env, fixedOrientation=False, fixedObjects=[],
-                 fixedPositions=None, minSeparation=0, objOnTable=None):
+                 fixedPositions=None, minSeparation=0, objOnTable=None, maxSeparation=2):
 
     failed = True
     while failed:
@@ -158,10 +167,16 @@ def drawPosition(env, fixedOrientation=False, fixedObjects=[],
                 startPositions[obj] = startPose
                 if len(startPositions) == 1:
                     break
-                clearance = checkSeparation(startPositions)
+                clearance = checkMinSeparation(startPositions)
                 if clearance >= minSeparation:
                     break
                 print("Failed minimum separation ({}), draw again {}.."
+                      .format(clearance, obj))
+
+                clearance = checkMaxSeparation(startPositions)
+                if clearance <= maxSeparation:
+                    break
+                print("Failed maximum separation ({}), draw again {}.."
                       .format(clearance, obj))
 
         (a, p, f, it, m) = generateRealPosition(env, startPositions)
@@ -174,10 +189,17 @@ def drawPosition(env, fixedOrientation=False, fixedObjects=[],
             print("Failed image generation...")
             continue
 
-        clearance = checkSeparation(actual_position)
+        clearance = checkMinSeparation(actual_position)
         if clearance < minSeparation:
             failed = True
             print("Failed minimum separation ({}) after real generation, "
+                  "draw again everything..".format(clearance))
+            continue
+
+        clearance = checkMaxSeparation(actual_position)
+        if clearance > maxSeparation:
+            failed = True
+            print("Failed maximum separation ({}) after real generation, "
                   "draw again everything..".format(clearance))
             continue
 
@@ -272,7 +294,7 @@ def isOnTable(obj, state):
     return False
 
 
-def generateGoalREAL2020(env, n_obj, goal_type, on_shelf = False, min_start_goal_dist = 0.1, min_objects_dist = 0.05):
+def generateGoalREAL2020(env, n_obj, goal_type, on_shelf = False, min_start_goal_dist = 0.1, min_objects_dist = 0.05, max_objects_dist=2):
 
     print("Generating GOAL..")
 
@@ -285,7 +307,7 @@ def generateGoalREAL2020(env, n_obj, goal_type, on_shelf = False, min_start_goal
 
     found = False
     while not(found):
-        initial = drawPosition(env, fixedOrientation=True, objOnTable=objOnTable, minSeparation=min_objects_dist)
+        initial = drawPosition(env, fixedOrientation=True, objOnTable=objOnTable, minSeparation=min_objects_dist, maxSeparation=max_objects_dist)
         found = True
 
     
@@ -298,7 +320,7 @@ def generateGoalREAL2020(env, n_obj, goal_type, on_shelf = False, min_start_goal
     found = False
     while not(found):
         found = True
-        final = drawPosition(env, fixedOrientation=True, objOnTable=objOnTable, minSeparation=min_objects_dist)
+        final = drawPosition(env, fixedOrientation=True, objOnTable=objOnTable, minSeparation=min_objects_dist, maxSeparation=max_objects_dist)
 
         for obj in final.fixed_state.keys():
             if min_start_goal_dist > np.linalg.norm(final.fixed_state[obj][:2]-initial.fixed_state[obj][:2]):
@@ -387,7 +409,7 @@ def main(seed=None, n_2d_goals=25,n_25d_goals=15,n_3d_goals=10, n_obj=3):
         allgoals += [generateGoalREAL2020(env, n_obj, "2.5D", on_shelf=True, min_start_goal_dist=0.1, min_objects_dist = 0.05)]
 
     for _ in range(n_3d_goals):
-        allgoals += [generateGoalREAL2020(env, n_obj, "3D", on_shelf=True, min_start_goal_dist=0.1, min_objects_dist = 0)]
+        allgoals += [generateGoalREAL2020(env, n_obj, "3D", on_shelf=True, min_start_goal_dist=0.1, min_objects_dist = 0, max_objects_dist=0.1)]
 
     np.savez_compressed('goals-REAL2020-s{}-{}-{}-{}-{}.npy'
                         .format(seed, n_2d_goals, n_25d_goals, n_3d_goals, n_obj), allgoals)
