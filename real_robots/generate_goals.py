@@ -135,7 +135,7 @@ def checkMaxSeparation(state):
         distances = pairwise_distances(positions)
         clearance = distances[distances > 0].max()
     else:
-        clearance = np.sup
+        clearance = np.inf
     return clearance
 
 
