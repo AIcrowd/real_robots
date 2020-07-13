@@ -291,7 +291,7 @@ def generateGoalREAL2020(env, n_obj, goal_type, on_shelf = False, min_start_goal
         initial = drawPosition(env, fixedOrientation=True, objOnTable=objOnTable, minSeparation=min_objects_dist)
         found = True
 
-    #checks whether two objects are close together at least as specified in max_objects_dist
+    #checks whether at least two objects are close together as specified in max_objects_dist
     at_least_two_near_objects = False
     for obj1 in initial.fixed_state.keys():
         for obj2 in initial.fixed_state.keys():
@@ -317,7 +317,7 @@ def generateGoalREAL2020(env, n_obj, goal_type, on_shelf = False, min_start_goal
         found = True
         final = drawPosition(env, fixedOrientation=True, objOnTable=objOnTable, minSeparation=min_objects_dist)
 
-        #checks whether two objects are close together at least as specified in max_objects_dist. This only if in the initial positions it is not true
+        #checks whether at least two objects are close together as specified in max_objects_dist. This only if in the initial positions it is not true
         if not at_least_two_near_objects:
             found = False
             for obj1 in final.fixed_state.keys():
@@ -333,7 +333,7 @@ def generateGoalREAL2020(env, n_obj, goal_type, on_shelf = False, min_start_goal
                     break
 
         #checks if at least one object is on the table. This only if in the initial positions it is not true
-        if not at_least_one_on_shelf:
+        if found and not at_least_one_on_shelf:
             found = False
             for obj in final.fixed_state.keys():
                 if isOnShelf(obj, final.fixed_state):
@@ -345,7 +345,7 @@ def generateGoalREAL2020(env, n_obj, goal_type, on_shelf = False, min_start_goal
             if min_start_goal_dist > np.linalg.norm(final.fixed_state[obj][:2]-initial.fixed_state[obj][:2]):
                 found = False
                 break
-        
+
 
     goal = Goal()
     goal.challenge = goal_type
