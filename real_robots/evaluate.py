@@ -357,7 +357,7 @@ class EvaluationService:
         self.evaluation_state["state"] = "EXTRINSIC_PHASE_COMPLETE"
         self.evaluation_state["score"] = {
             "score": self.evaluation_state["evaluation_score"]["score_total"],
-            "score_secondary" : self.evaluation_state["evaluation_score"]["score_REAL2020"]  # noqa
+            "score_secondary" : self.evaluation_state["evaluation_score"]["score_2D"]  # noqa
         }
         self.evaluation_state["meta"] = self.evaluation_state["evaluation_score"]  # noqa
         self.evaluation_state["state"] = "EVALUATION_COMPLETE"
@@ -370,7 +370,8 @@ class EvaluationService:
 
     def build_score_object(self):
         total_score = 0
-        challenges = ['REAL2020']
+        total_results = []
+        challenges = ['2D', '2.5D', '3D']
 
         score_object = {}
         for key in challenges:
@@ -380,9 +381,9 @@ class EvaluationService:
             else:
                 results = []
                 challenge_score = 0
-            total_score += challenge_score
+            total_results += results
             score_object["score_{}".format(key)] = challenge_score
-        total_score /= len(challenges)
+        total_score = np.mean(total_results)
 
         score_object["score_total"] = total_score
         # Mark Changes in evaluation_state
