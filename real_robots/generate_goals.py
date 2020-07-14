@@ -144,7 +144,7 @@ def drawPosition(env, fixedOrientation=False, fixedObjects=[],
         for obj in fixedObjects:
             startPositions[obj] = fixedPositions[obj]
 
-        for obj in objects:
+        for obj in np.random.permutation(objects):
             if obj in fixedObjects:
                 continue
             while True:
@@ -424,10 +424,10 @@ def main(seed=None, n_2d_goals=25, n_25d_goals=15, n_3d_goals=10, n_obj=3):
 
     # In these for loops, we could add some progress bar...
     for _ in range(n_2d_goals):
-        allgoals += [generateGoalREAL2020(env, n_obj, "2D", on_shelf=False, min_start_goal_dist=0.2, min_objects_dist=0.3)]
+        allgoals += [generateGoalREAL2020(env, n_obj, "2D", on_shelf=False, min_start_goal_dist=0.2, min_objects_dist=0.25)]
 
     for _ in range(n_25d_goals):
-        allgoals += [generateGoalREAL2020(env, n_obj, "2.5D", on_shelf=True, min_start_goal_dist=0.2, min_objects_dist=0.3)]
+        allgoals += [generateGoalREAL2020(env, n_obj, "2.5D", on_shelf=True, min_start_goal_dist=0.2, min_objects_dist=0.25)]
 
     for _ in range(n_3d_goals):
         allgoals += [generateGoalREAL2020(env, n_obj, "3D", on_shelf=True, min_start_goal_dist=0.2, min_objects_dist=0)]
