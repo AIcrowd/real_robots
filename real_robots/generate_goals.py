@@ -301,7 +301,7 @@ def generateGoalREAL2020(env, n_obj, goal_type, on_shelf = False, min_start_goal
                 if obj1 == obj2:
                     continue
 
-                if np.linalg.norm(initial.fixed_state[obj1][:3]-initial.fixed_state[obj2][:3]) <= max_objects_dist or goal_type != '3D' or len(initial.fixed_state.keys()) == 1:
+                if np.linalg.norm(initial.fixed_state[obj1][:3]-initial.fixed_state[obj2][:3]) <= max_objects_dist or goal_type != '3D' or n_obj == 1:
                     at_least_two_near_objects = True
                     break
 
