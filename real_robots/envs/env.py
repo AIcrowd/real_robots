@@ -115,6 +115,10 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             self.no_mask = self.observation_space.spaces[
                                 self.robot.ObsSpaces.MASK].sample()*0
 
+
+        
+
+
     def setCamera(self):
         ''' Initialize environment camera
         '''
@@ -447,12 +451,13 @@ class EnvCamera:
         self.render_width = width
         self.render_height = height
 
+
     def render(self, bullet_client=None):
 
-        if bullet_client is None:
-            bullet_client = self._p
+        #if bullet_client is None:
+            #bullet_client = self._p
 
-        view_matrix = bullet_client.computeViewMatrixFromYawPitchRoll(
+        view_matrix = pybullet.computeViewMatrixFromYawPitchRoll(
                 cameraTargetPosition=self.pos,
                 distance=self.dist,
                 yaw=self.yaw,
@@ -460,12 +465,12 @@ class EnvCamera:
                 roll=self.roll,
                 upAxisIndex=2)
 
-        proj_matrix = bullet_client.computeProjectionMatrixFOV(
+        proj_matrix = pybullet.computeProjectionMatrixFOV(
                 fov=self.fov,
                 aspect=float(self.render_width)/self.render_height,
                 nearVal=0.1, farVal=100.0)
 
-        (_, _, px, _, _) = bullet_client.getCameraImage(
+        (_, _, px, _, _) = pybullet.getCameraImage(
                 width=self.render_width, height=self.render_height,
                 viewMatrix=view_matrix,
                 projectionMatrix=proj_matrix,

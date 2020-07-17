@@ -2,11 +2,16 @@
 
 import gym
 from .envs import Goal  # noqa F401
+from .envs import EnvCamera
 from .policy import BasePolicy
 import numpy as np
 import time
 from tqdm.auto import tqdm
 import aicrowd_api
+import os
+import cv2
+from PIL import Image, ImageDraw, ImageFilter
+
 
 """Local evaluation helper functions."""
 
@@ -45,7 +50,8 @@ class EvaluationService:
                  extrinsic_timesteps=10e3,
                  extrinsic_trials=50,
                  visualize=True,
-                 goals_dataset_path="./goals.npy.npz"):
+                 goals_dataset_path="./goals.npy.npz",
+                 video=False):
 
         self.ControllerClass = Controller
         self.intrinsic_timesteps = intrinsic_timesteps
@@ -60,6 +66,14 @@ class EvaluationService:
         self.setup_evaluation_state()
         self.setup_scores()
         self.setup_aicrowd_helpers()
+
+        if video:
+            self.camera = EnvCamera(1.2,30,-30,0,[0, 0, .4],width=960, height=720) 
+        self.video = video
+
+
+
+
 
     def setup_aicrowd_helpers(self):
         self.aicrowd_events = aicrowd_api.events.AIcrowdEvents()
@@ -279,6 +293,38 @@ class EvaluationService:
                 leave=False
                 )
 
+        if self.video:
+            strings = time.strftime("%Y,%m,%d,%H,%M,%S")
+            t = strings.split(',')
+            numbers = [ int(x) for x in t ]
+            filename = "Simulation-d{}-m{}-y{}-h{}-m{}-trial-{}.avi".format(numbers[2],numbers[1],numbers[0],numbers[3],numbers[4],trial_number)
+            video = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'XVID'), 10, (960,720),isColor=True)
+  
+            retina = observation['retina']
+            goal = observation['goal']
+            goal = Image.fromarray(goal)
+            
+            n_obj = len(observation['object_positions'].keys())              
+
+            goal = goal.resize((96,72))
+            d = ImageDraw.Draw(goal)
+            d.text((int(96*0.4),int(72*0.8)), "GOAL", fill=(0,0,0))
+            current = Image.fromarray(retina)
+            d = ImageDraw.Draw(current)
+            d.text((int(320*0.35),int(240*0.75)), "CURRENT SITUATION", fill=(0,0,0)) 
+            if n_obj == 1:
+                d.text((int(320*0.42),int(240*0.8)), "DISTANCE:", fill=(0,0,0)) 
+            else:
+                d.text((int(320*0.42),int(240*0.8)), "DISTANCES:", fill=(0,0,0)) 
+            string = ""
+            for key in observation['object_positions'].keys():
+                dist = np.linalg.norm(observation['object_positions'][key][:3]-observation['goal_positions'][key][:3]) * 100
+                string = string + str(key).upper() + ": " + str(dist)[:4] + " cm; " 
+            n_obj = len(observation['object_positions'].keys()) 
+            d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.85)), string, fill=(0,0,0)) 
+            current.paste(goal,(224,0))
+            
+
         steps = 0
         while not done:
             action = self.controller.step(observation, reward, done)
@@ -290,6 +336,32 @@ class EvaluationService:
             self.evaluation_state["progress_in_current_extrinsic_trial"] = \
                 progress
             self.sync_evaluation_state()
+
+            if self.video:
+                if action['render']:
+                    retina = observation['retina']
+                    current = Image.fromarray(retina)
+                    d = ImageDraw.Draw(current)
+                    d.text((int(320*0.35),int(240*0.75)), "CURRENT SITUATION", fill=(0,0,0)) 
+                    if n_obj == 1:
+                        d.text((int(320*0.42),int(240*0.8)), "DISTANCE:", fill=(0,0,0)) 
+                    else:
+                        d.text((int(320*0.42),int(240*0.8)), "DISTANCES:", fill=(0,0,0)) 
+                    string = ""
+                    for key in observation['object_positions'].keys():
+                        dist = np.linalg.norm(observation['object_positions'][key][:3]-observation['goal_positions'][key][:3]) * 100
+                        string = string + str(key).upper() + ": " + str(dist)[:4] + " cm; " 
+                    d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.85)), string, fill=(0,0,0)) 
+                    current.paste(goal,(224,0))
+
+                if steps % 50 == 0:
+                    camera = Image.fromarray(self.camera.render())
+                    camera.paste(current,(640,0))
+                    video.write(cv2.cvtColor(np.array(camera.getdata()).reshape((720,960,3)).astype(np.uint8),cv2.COLOR_RGB2BGR))
+
+        if self.video:
+            cv2.destroyAllWindows()
+            video.release()            
 
         # Evaluate Current Goal
         self.add_scores(*self.env.evaluateGoal())
@@ -400,7 +472,8 @@ def evaluate(Controller,
              extrinsic_timesteps=10e3,
              extrinsic_trials=50,
              visualize=True,
-             goals_dataset_path="./goals.npy.npz"):
+             goals_dataset_path="./goals.npy.npz",
+             video=False):
 
     evaluation_service = EvaluationService(
         Controller,
@@ -411,10 +484,11 @@ def evaluate(Controller,
         extrinsic_timesteps,
         extrinsic_trials,
         visualize,
-        goals_dataset_path
-        )
+        goals_dataset_path,
+        video)
     
     evaluation_service.run_intrinsic_phase()
     evaluation_service.run_extrinsic_phase()
     
     return evaluation_service.build_score_object(), evaluation_service.scores
+
