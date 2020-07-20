@@ -357,6 +357,11 @@ class EvaluationService:
                 if steps % 50 == 0:
                     camera = Image.fromarray(self.camera.render())
                     camera.paste(current,(640,0))
+                    
+                    d = ImageDraw.Draw(camera)
+                    d.text((int(960*0.65),int(720*0.75)), "Action: \n" + str(action['macro_action']), fill=(0,0,0)) 
+                    d.text((int(960*0.65),int(720*0.85)), "Trial: " + str(trial_number) + " Step: " + str(steps), fill=(0,0,0)) 
+
                     video.write(cv2.cvtColor(np.array(camera.getdata()).reshape((720,960,3)).astype(np.uint8),cv2.COLOR_RGB2BGR))
 
         if self.video:
