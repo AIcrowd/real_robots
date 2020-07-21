@@ -324,6 +324,8 @@ class EvaluationService:
             d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.85)), string, fill=(0,0,0)) 
             current.paste(goal,(224,0))
             
+            
+            score_object = build_score_object()
 
         steps = 0
         while not done:
@@ -359,8 +361,10 @@ class EvaluationService:
                     camera.paste(current,(640,0))
                     
                     d = ImageDraw.Draw(camera)
-                    d.text((int(960*0.65),int(720*0.75)), "Action: \n" + str(action['macro_action']), fill=(0,0,0)) 
-                    d.text((int(960*0.65),int(720*0.85)), "Trial: " + str(trial_number) + " Step: " + str(steps), fill=(0,0,0)) 
+                    d.text((int(960*0.75),int(720*0.75)), "Action: \n" + str(action['macro_action']), fill=(0,0,0)) 
+                    d.text((int(960*0.75),int(720*0.85)), "Trial: " + str(trial_number) + " Step: " + str(steps), fill=(0,0,0)) 
+                    d.text((int(960*0.75),int(720*0.9)), "Total score: " + str(score_object["score_total"]), fill=(0,0,0)) 
+                    d.text((int(960*0.75),int(720*0.9)), "Score 2D: " + str(score_object['2D']) + "Score 2.5D: " + str(score_object['2.5D']) + "Score 3D: " + str(score_object['3D']), fill=(0,0,0))
 
                     video.write(cv2.cvtColor(np.array(camera.getdata()).reshape((720,960,3)).astype(np.uint8),cv2.COLOR_RGB2BGR))
 
