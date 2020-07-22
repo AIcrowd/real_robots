@@ -297,7 +297,7 @@ class EvaluationService:
             strings = time.strftime("%Y,%m,%d,%H,%M,%S")
             t = strings.split(',')
             numbers = [ int(x) for x in t ]
-            filename = "Simulation-d{}-m{}-y{}-h{}-m{}-trial-{}.avi".format(numbers[2],numbers[1],numbers[0],numbers[3],numbers[4],trial_number)
+            filename = "Simulation-{}-d{}-m{}-y{}-h{}-m{}-trial-{}.avi".format(np.random.randint(100000),numbers[2],numbers[1],numbers[0],numbers[3],numbers[4],trial_number)
             video = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'XVID'), 10, (960,720),isColor=True)
   
             retina = observation['retina']
@@ -331,7 +331,7 @@ class EvaluationService:
                 d.text((int(320*0.35),int(240*0.85)), "INITIAL DISTANCES:", fill=(0,0,0)) 
             string = ""
             for key in observation['object_positions'].keys():
-                string = string + str(key).upper() + ": " + str(intial_dist[key])[:5] + " cm; " 
+                string = string + str(key).upper() + ": " + str(intial_dist[key])[:4] + " cm; " 
             d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.9)), string, fill=(0,0,0)) 
 
 
