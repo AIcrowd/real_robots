@@ -69,6 +69,7 @@ class EvaluationService:
 
         if video:
             self.camera = EnvCamera(1.2,30,-30,0,[0, 0, .4],width=960, height=720) 
+            self.seed = np.random.randint(100000)
         self.video = video
 
 
@@ -297,7 +298,7 @@ class EvaluationService:
             strings = time.strftime("%Y,%m,%d,%H,%M,%S")
             t = strings.split(',')
             numbers = [ int(x) for x in t ]
-            filename = "Simulation-{}-d{}-m{}-y{}-h{}-m{}-trial-{}.avi".format(np.random.randint(100000),numbers[2],numbers[1],numbers[0],numbers[3],numbers[4],trial_number)
+            filename = "Simulation-{}-d{}-m{}-y{}-h{}-m{}-trial-{}.avi".format(self.seed,numbers[2],numbers[1],numbers[0],numbers[3],numbers[4],trial_number)
             video = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'XVID'), 10, (960,720),isColor=True)
   
             retina = observation['retina']
