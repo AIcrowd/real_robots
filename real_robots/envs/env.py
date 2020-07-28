@@ -360,13 +360,14 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             joint_action = {"joint_command": np.zeros(9),
                             "render": action['render']}
         else:
-            if np.all(macro_action == self.requested_action):
-                pass
-            else:
+            sameAction = np.all(macro_action == self.requested_action)
+            if sameAction:
+                joints = self.next_step()
+
+            if not sameAction or joints is None:
                 self.requested_action = macro_action
                 self.generate_plan(macro_action)
-
-            joints = self.next_step()
+                joints = self.next_step()
 
             joint_action = {"joint_command": joints,
                             "render": action['render']}
@@ -430,7 +431,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         if self.plan_step < len(self.planned_actions):
             return self.planned_actions[self.plan_step, :]
         else:
-            return np.zeros(9)
+            return None
 
 
 class EnvCamera:
