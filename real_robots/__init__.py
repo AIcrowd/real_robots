@@ -4,7 +4,7 @@
 
 __author__ = """S.P. Mohanty"""
 __email__ = 'mohanty@aicrowd.com'
-__version__ = '0.1.17'
+__version__ = '0.1.18'
 
 import os
 from gym.envs.registration import register
