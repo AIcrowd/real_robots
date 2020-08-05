@@ -67,6 +67,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/aicrowd/real_robots',
-    version='0.1.18',
+    version='0.1.19',
     zip_safe=False,
 )
