@@ -347,7 +347,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                                                       maxNumIterations=1000,
                                                       residualThreshold=0.001)
 
-        joint_action = {"joint_command": inv_act[:9],
+        joint_action = {"joint_command": np.array(inv_act[:9]),
                         "render": action['render']}
 
         return self.step_joints(joint_action)
