@@ -2,15 +2,12 @@
 
 import gym
 from .envs import Goal  # noqa F401
-from .envs import EnvCamera
 from .policy import BasePolicy
 import numpy as np
 import time
 from tqdm.auto import tqdm
 import aicrowd_api
-import os
-import cv2
-from PIL import Image, ImageDraw, ImageFilter
+from .videomaker import VideoMaker
 
 
 """Local evaluation helper functions."""
@@ -66,12 +63,9 @@ class EvaluationService:
         self.setup_evaluation_state()
         self.setup_scores()
         self.setup_aicrowd_helpers()
-
-        if video:
-            self.camera = EnvCamera(1.2,30,-30,0,[0, 0, .4],width=960, height=720) 
-            self.seed = np.random.randint(100000)
         self.video = video
-
+        if self.video:
+            self.videomaker = VideoMaker()
 
 
 
@@ -152,7 +146,6 @@ class EvaluationService:
             pass
 
     def setup_gym_env(self, environment, action_type, n_objects):
-
         if environment in ["R1", "R2"]:
             rnd = environment
         else:
@@ -295,51 +288,11 @@ class EvaluationService:
                 )
 
         if self.video:
-            strings = time.strftime("%Y,%m,%d,%H,%M,%S")
-            t = strings.split(',')
-            numbers = [ int(x) for x in t ]
-            filename = "Simulation-{}-d{}-m{}-y{}-h{}-m{}-trial-{}.avi".format(self.seed,numbers[2],numbers[1],numbers[0],numbers[3],numbers[4],trial_number)
-            video = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'XVID'), 10, (960,720),isColor=True)
-  
-            retina = observation['retina']
-            goal = observation['goal']
-            goal = Image.fromarray(goal)
-            
-            n_obj = len(observation['object_positions'].keys())              
+            self.videomaker.start_trial(observation, trial_number)
 
-            goal = goal.resize((96,72))
-            d = ImageDraw.Draw(goal)
-            d.text((int(96*0.4),int(72*0.8)), "GOAL", fill=(0,0,0))
-            current = Image.fromarray(retina)
-            d = ImageDraw.Draw(current)
-            #d.text((int(320*0.35),int(240*0.75)), "CURRENT SITUATION", fill=(0,0,0)) 
-            if n_obj == 1:
-                d.text((int(320*0.35),int(240*0.75)), "CURRENT DISTANCE:", fill=(0,0,0)) 
-            else:
-                d.text((int(320*0.35),int(240*0.75)), "CURRENT DISTANCES:", fill=(0,0,0)) 
-            string = ""
-            intial_dist = {}
-            for key in observation['object_positions'].keys():
-                intial_dist[key] = np.linalg.norm(observation['object_positions'][key][:3]-observation['goal_positions'][key][:3]) * 100
-                string = string + str(key).upper() + ": " + str(intial_dist[key])[:4] + " cm; " 
-            n_obj = len(observation['object_positions'].keys()) 
-            d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.8)), string, fill=(0,0,0)) 
-
-
-            if n_obj == 1:
-                d.text((int(320*0.35),int(240*0.85)), "INITIAL DISTANCE:", fill=(0,0,0)) 
-            else:
-                d.text((int(320*0.35),int(240*0.85)), "INITIAL DISTANCES:", fill=(0,0,0)) 
-            string = ""
-            for key in observation['object_positions'].keys():
-                string = string + str(key).upper() + ": " + str(intial_dist[key])[:4] + " cm; " 
-            d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.9)), string, fill=(0,0,0)) 
-
-
-            current.paste(goal,(224,0))
-            
-            if trial_number:
-                score_object = self.build_score_object()
+        score_object = None
+        if trial_number:
+            score_object = self.build_score_object()
 
         steps = 0
         while not done:
@@ -354,48 +307,10 @@ class EvaluationService:
             self.sync_evaluation_state()
 
             if self.video:
-                if action['render']:
-                    retina = observation['retina']
-                    current = Image.fromarray(retina)
-                    d = ImageDraw.Draw(current)
-                    #d.text((int(320*0.35),int(240*0.75)), "CURRENT SITUATION", fill=(0,0,0)) 
-
-                    if n_obj == 1:
-                        d.text((int(320*0.35),int(240*0.75)), "CURRENT DISTANCE:", fill=(0,0,0)) 
-                    else:
-                        d.text((int(320*0.35),int(240*0.75)), "CURRENT DISTANCES:", fill=(0,0,0)) 
-                    string = ""
-                    for key in observation['object_positions'].keys():
-                        dist = np.linalg.norm(observation['object_positions'][key][:3]-observation['goal_positions'][key][:3]) * 100
-                        string = string + str(key).upper() + ": " + str(dist)[:4] + " cm; " 
-                    d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.8)), string, fill=(0,0,0)) 
-
-                    if n_obj == 1:
-                        d.text((int(320*0.35),int(240*0.85)), "INITIAL DISTANCE:", fill=(0,0,0)) 
-                    else:
-                        d.text((int(320*0.35),int(240*0.85)), "INITIAL DISTANCES:", fill=(0,0,0)) 
-                    string = ""
-                    for key in observation['object_positions'].keys():
-                        string = string + str(key).upper() + ": " + str(intial_dist[key])[:4] + " cm; " 
-                    d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.9)), string, fill=(0,0,0)) 
-                    current.paste(goal,(224,0))
-
-                if steps % 50 == 0:
-                    camera = Image.fromarray(self.camera.render())
-                    camera.paste(current,(640,0))
-                    
-                    d = ImageDraw.Draw(camera)
-                    d.text((int(960*0.75),int(720*0.65)), "Action: \n" + str(action['macro_action']), fill=(0,0,0)) 
-                    d.text((int(960*0.75),int(720*0.75)), "Trial: " + str(trial_number) + " Step: " + str(steps), fill=(0,0,0)) 
-                    if trial_number:
-                        d.text((int(960*0.7),int(720*0.8)), "Total score: " + str(score_object["score_total"])[:5], fill=(0,0,0)) 
-                        d.text((int(960*0.7),int(720*0.85)), "Score 2D: " + str(score_object['score_2D'])[:5] + " Score 2.5D: " + str(score_object['score_2.5D'])[:5] + " Score 3D: " + str(score_object['score_3D'])[:5], fill=(0,0,0))
-
-                    video.write(cv2.cvtColor(np.array(camera.getdata()).reshape((720,960,3)).astype(np.uint8),cv2.COLOR_RGB2BGR))
+                self.videomaker.extrinsic_trial(observation, action, steps, score_object)
 
         if self.video:
-            cv2.destroyAllWindows()
-            video.release()            
+            self.videomaker.end_trial()
 
         # Evaluate Current Goal
         self.add_scores(*self.env.evaluateGoal())
