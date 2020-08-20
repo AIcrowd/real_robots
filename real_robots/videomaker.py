@@ -23,29 +23,20 @@ class VideoMaker:
         self.current = None
 
 
-
-    def end_trial(self):
-        cv2.destroyAllWindows()
-        self.video.release()  
-
-    def start_trial(self, observation, trial_number):
-        self.trial_number = trial_number
-        time_string = time.strftime("%Y,%m,%d,%H,%M").split(',')
-        filename = "Simulation-{}-y{}-m{}-d{}-h{}-m{}-trial-{}.avi".format(self.seed, *time_string, self.trial_number)
-        self.video = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'XVID'), 10, (960,720),isColor=True)
-
-        retina = observation['retina']
+    def getGoal(self, observation):
         goal = observation['goal']
-        goal = Image.fromarray(goal)
-        
-        n_obj = len(observation['object_positions'].keys())              
-
+        goal = Image.fromarray(goal)        
         goal = goal.resize((96,72))
         d = ImageDraw.Draw(goal)
         d.text((int(96*0.4),int(72*0.8)), "GOAL", fill=(0,0,0))
+        self.goal = goal
+
+    def updateCurrentTrialStatus(self, observation):
+        retina = observation['retina']
         self.current = Image.fromarray(retina)
         d = ImageDraw.Draw(self.current)
-        #d.text((int(320*0.35),int(240*0.75)), "CURRENT SITUATION", fill=(0,0,0)) 
+
+        n_obj = len(observation['object_positions'].keys())
         if n_obj == 1:
             d.text((int(320*0.35),int(240*0.75)), "CURRENT DISTANCE:", fill=(0,0,0)) 
         else:
@@ -58,7 +49,6 @@ class VideoMaker:
         n_obj = len(observation['object_positions'].keys()) 
         d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.8)), string, fill=(0,0,0)) 
 
-
         if n_obj == 1:
             d.text((int(320*0.35),int(240*0.85)), "INITIAL DISTANCE:", fill=(0,0,0)) 
         else:
@@ -68,38 +58,24 @@ class VideoMaker:
             string = string + str(key).upper() + ": " + str(intial_dist[key])[:4] + " cm; " 
         d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.9)), string, fill=(0,0,0)) 
 
+        self.current.paste(self.goal,(224,0))         
 
-        self.current.paste(goal,(224,0))
+
+    def end_trial(self):
+        cv2.destroyAllWindows()
+        self.video.release()  
+
+    def start_trial(self, observation, trial_number):
+        self.trial_number = trial_number
+        time_string = time.strftime("%Y,%m,%d,%H,%M").split(',')
+        filename = "Simulation-{}-y{}-m{}-d{}-h{}-m{}-trial-{}.avi".format(self.seed, *time_string, self.trial_number)
+        self.video = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'XVID'), 10, (960,720),isColor=True)
+        self.getGoal(observation)
+        self.updateCurrentTrialStatus(observation)
         
-
-
-
     def extrinsic_trial(self, observation, action, steps, score_object):
         if action['render']:
-            retina = observation['retina']
-            self.current = Image.fromarray(retina)
-            d = ImageDraw.Draw(self.current)
-            #d.text((int(320*0.35),int(240*0.75)), "CURRENT SITUATION", fill=(0,0,0)) 
-
-            if n_obj == 1:
-                d.text((int(320*0.35),int(240*0.75)), "CURRENT DISTANCE:", fill=(0,0,0)) 
-            else:
-                d.text((int(320*0.35),int(240*0.75)), "CURRENT DISTANCES:", fill=(0,0,0)) 
-            string = ""
-            for key in observation['object_positions'].keys():
-                dist = np.linalg.norm(observation['object_positions'][key][:3]-observation['goal_positions'][key][:3]) * 100
-                string = string + str(key).upper() + ": " + str(dist)[:4] + " cm; " 
-            d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.8)), string, fill=(0,0,0)) 
-
-            if n_obj == 1:
-                d.text((int(320*0.35),int(240*0.85)), "INITIAL DISTANCE:", fill=(0,0,0)) 
-            else:
-                d.text((int(320*0.35),int(240*0.85)), "INITIAL DISTANCES:", fill=(0,0,0)) 
-            string = ""
-            for key in observation['object_positions'].keys():
-                string = string + str(key).upper() + ": " + str(intial_dist[key])[:4] + " cm; " 
-            d.text((int(320*(0.37 - 0.14 * (n_obj-1))),int(240*0.9)), string, fill=(0,0,0)) 
-            self.current.paste(goal,(224,0))
+            self.updateCurrentTrialStatus(observation)
 
         if steps % 50 == 0:
             camera = Image.fromarray(self.camera.render())
