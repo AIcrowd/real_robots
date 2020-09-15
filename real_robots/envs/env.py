@@ -154,6 +154,9 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             orientation = self.goal.initial_state[obj][3:]
             self.robot.object_bodies[obj].reset_pose(position, orientation)
 
+        for obj in self.goal.final_state.keys():
+            self.goal.final_state[obj] = self.goal.final_state[obj][:3]
+
         return self.get_observation()
 
     def extrinsicFormula(self, p_goal, p, a_goal, a, w=1):

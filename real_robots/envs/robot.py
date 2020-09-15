@@ -74,11 +74,7 @@ class Kuka(URDFBasedRobot):
             for obj in self.used_objects[1:]:
                 high = np.array([np.finfo(np.float32).max,
                                  np.finfo(np.float32).max,
-                                 np.finfo(np.float32).max,
-                                 1.0,
-                                 1.0,
-                                 1.0,
-                                 1.0])
+                                 np.finfo(np.float32).max])
                 obj_obs[obj] = gym.spaces.Box(-high, high, dtype=float)
 
             self.observation_space = gym.spaces.Dict({
@@ -94,7 +90,8 @@ class Kuka(URDFBasedRobot):
                     0, 255, [Kuka.eye_height, Kuka.eye_width], dtype=np.int32),
                 self.ObsSpaces.GOAL_MASK: gym.spaces.Box(
                     0, 255, [Kuka.eye_height, Kuka.eye_width], dtype=np.int32),
-                self.ObsSpaces.OBJ_POS: gym.spaces.Dict(obj_obs)
+                self.ObsSpaces.OBJ_POS: gym.spaces.Dict(obj_obs),
+                self.ObsSpaces.GOAL_POS: gym.spaces.Dict(obj_obs)
                 }
             )
         else:
@@ -104,9 +101,9 @@ class Kuka(URDFBasedRobot):
                 self.ObsSpaces.TOUCH_SENSORS: gym.spaces.Box(
                     0, np.inf, [self.num_touch_sensors], dtype=float),
                 self.ObsSpaces.RETINA: gym.spaces.Box(
-                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float),
+                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=np.uint8),
                 self.ObsSpaces.GOAL: gym.spaces.Box(
-                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=float)}
+                    0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=np.uint8)}
             )
 
         self.target = "orange"

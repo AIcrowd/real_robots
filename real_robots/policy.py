@@ -1,5 +1,9 @@
 class BasePolicy:
 
+    def __init__(self, action_space, observation_space):
+        self.action_space = action_space
+        self.observation_space = observation_space
+
     def step(self, observation, reward, done):
         """
         The step function will receive the observation, reward and done signals

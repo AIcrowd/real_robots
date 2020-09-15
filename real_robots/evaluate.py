@@ -177,7 +177,7 @@ class EvaluationService:
                     "https://github.com/AIcrowd/real_robots#usage"
                 )
 
-        self.controller = self.ControllerClass(self.env.action_space)
+        self.controller = self.ControllerClass(self.env.action_space, self.env.observation_space)
 
     def setup_scores(self):
         self.scores = {}
