@@ -343,15 +343,19 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         return observation, reward, done, info
 
     def step_cartesian(self, action):
-        coords = action['cartesian_command'][:3]
-        desiredOrientation = action['cartesian_command'][3:]
-        inv_act = pybullet.calculateInverseKinematics(0, 7, coords,
+        if action['cartesian_command'] is None:
+            joint_action = {"joint_command": np.zeros(9),
+                            "render": action['render']}
+        else:
+            coords = action['cartesian_command'][:3]
+            desiredOrientation = action['cartesian_command'][3:]
+            inv_act = pybullet.calculateInverseKinematics(0, 7, coords,
                                                       desiredOrientation,
                                                       maxNumIterations=1000,
                                                       residualThreshold=0.001)
 
-        joint_action = {"joint_command": np.array(inv_act[:9]),
-                        "render": action['render']}
+            joint_action = {"joint_command": np.array(inv_act[:9]),
+                            "render": action['render']}
 
         return self.step_joints(joint_action)
 
