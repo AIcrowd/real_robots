@@ -349,12 +349,15 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         else:
             coords = action['cartesian_command'][:3]
             desiredOrientation = action['cartesian_command'][3:]
-            inv_act = pybullet.calculateInverseKinematics(0, 7, coords,
+            arm_joints = pybullet.calculateInverseKinematics(0, 7, coords,
                                                       desiredOrientation,
                                                       maxNumIterations=1000,
                                                       residualThreshold=0.001)
 
-            joint_action = {"joint_command": np.array(inv_act[:9]),
+            gripper_joints = action['gripper_command']
+            all_joints = np.hstack([arm_joints[:7], gripper_joints])
+
+            joint_action = {"joint_command": all_joints,
                             "render": action['render']}
 
         return self.step_joints(joint_action)
