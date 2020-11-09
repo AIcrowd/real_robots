@@ -146,6 +146,9 @@ class EvaluationService:
         else:
             raise Exception("Environment type has to be either R1 or R2")
 
+        if action_type == 'macro_action' and environment == 'R2':
+            raise Exception("Action type cannot be macro_action in Round 2")
+
         if action_type in ['joints', 'cartesian', 'macro_action']:
             act = action_type[0].upper()
         else:
