@@ -68,7 +68,7 @@ class EvaluationService:
         self.setup_aicrowd_helpers()
         self.video = video
         if self.video:
-            self.videomaker = VideoMaker()
+            self.videomaker = VideoMaker(self.env)
 
     def setup_aicrowd_helpers(self):
         self.aicrowd_events = aicrowd_api.events.AIcrowdEvents()
