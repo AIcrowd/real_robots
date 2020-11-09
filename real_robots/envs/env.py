@@ -267,7 +267,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         sensors = self.robot.get_touch_sensors()
 
         if camera_on:
-            retina = self.get_retina()
+            retina, _ = self.get_retina()
         else:
             retina = self.no_retina
 
