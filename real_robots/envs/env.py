@@ -112,6 +112,8 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         self.goal_idx = -1
         self.no_retina = self.observation_space.spaces[
                          self.robot.ObsSpaces.RETINA].sample()*0
+        self.no_depth = self.observation_space.spaces[
+                         self.robot.ObsSpaces.DEPTH].sample()*0
 
         if additional_obs:
             self.get_observation = self.get_observation_extended
@@ -269,6 +271,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             retina, _, depth = self.get_retina()
         else:
             retina = self.no_retina
+            depth = self.no_depth
 
         observation = {
                 Kuka.ObsSpaces.JOINT_POSITIONS: joints,
@@ -289,6 +292,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         else:
             retina = self.no_retina
             mask = self.no_mask
+            depth = self.no_depth
 
         all_obj_positions = self.get_all_used_objects()
 
