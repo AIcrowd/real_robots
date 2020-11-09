@@ -27,7 +27,8 @@ requirements = ['Click>=6.0',
                 'numpy', 
                 'tqdm', 
                 'aicrowd-api',
-                'pillow'
+                'pillow',
+                'pyinterval'
                 ]
 
 setup_requirements = ['pytest-runner', ]
@@ -67,6 +68,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/spMohanty/real_robots',
-    version='0.1.16',
+    version='0.1.21',
     zip_safe=False,
 )
