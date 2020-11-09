@@ -324,6 +324,9 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         assert(not self.scene.multiplayer)
 
+        if joint_action is None:
+            joint_action = np.zeros(9)
+
         joint_action = self.limitActionByJoint(joint_action)
 
         self.control_objects_limits()
