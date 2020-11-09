@@ -65,6 +65,9 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                                 "gripper_command": self.gripper_space,
                                 "render": spaces.MultiBinary(1)})
             self.step = self.step_cartesian
+            self.requested_coords = None
+            self.requested_orient = None
+            self.last_ik = None
 
         elif action_type == 'macro_action':
             self.action_space = spaces.Dict({
@@ -349,10 +352,20 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         else:
             coords = action['cartesian_command'][:3]
             desiredOrientation = action['cartesian_command'][3:]
-            arm_joints = pybullet.calculateInverseKinematics(0, 7, coords,
+
+            sameCoords = np.all(coords == self.requested_coords)
+            sameOrient = np.all(desiredOrientation == self.requested_orient)
+
+            if sameCoords and sameOrient:
+                arm_joints = self.last_ik
+            else:
+                arm_joints = pybullet.calculateInverseKinematics(0, 7, coords,
                                                       desiredOrientation,
                                                       maxNumIterations=1000,
                                                       residualThreshold=0.001)
+                self.last_ik = arm_joints
+                self.requested_coords = coords
+                self.requested_orient = desiredOrientation
 
             gripper_joints = action['gripper_command']
             all_joints = np.hstack([arm_joints[:7], gripper_joints])
