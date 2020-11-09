@@ -27,7 +27,6 @@ class VideoMaker:
         self.video_fps = 25
         self.speed_up = 1 #some speed up values will be rounded, see frame_freq
         self.frame_freq = int((200.0 / self.video_fps) * self.speed_up)
-        
 
     def start_intrinsic(self):
         time_string = time.strftime("%Y,%m,%d,%H,%M").split(',')
