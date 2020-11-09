@@ -65,6 +65,9 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                                 "gripper_command": self.gripper_space,
                                 "render": spaces.MultiBinary(1)})
             self.step = self.step_cartesian
+            self.requested_coords = None
+            self.requested_orient = None
+            self.last_ik = None
 
         elif action_type == 'macro_action':
             self.action_space = spaces.Dict({
@@ -157,6 +160,9 @@ class REALRobotEnv(MJCFBaseBulletEnv):
             position = self.goal.initial_state[obj][:3]
             orientation = self.goal.initial_state[obj][3:]
             self.robot.object_bodies[obj].reset_pose(position, orientation)
+
+        for obj in self.goal.final_state.keys():
+            self.goal.final_state[obj] = self.goal.final_state[obj][:3]
 
         return self.get_observation()
 
@@ -255,7 +261,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         '''
         for obj in self.robot.used_objects:
             x, y, z = self.robot.object_bodies[obj].get_position()
-            if z < self.robot.object_poses['table'][2]:
+            if z < self.robot.object_poses['table'][2] or (x > 0.11 and z < 0.29):
                 self.robot.reset_object(obj)
 
     def get_observation(self, camera_on=True):
@@ -344,15 +350,32 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         return observation, reward, done, info
 
     def step_cartesian(self, action):
-        coords = action['cartesian_command'][:3]
-        desiredOrientation = action['cartesian_command'][3:]
-        inv_act = pybullet.calculateInverseKinematics(0, 7, coords,
+        if action['cartesian_command'] is None:
+            joint_action = {"joint_command": np.zeros(9),
+                            "render": action['render']}
+        else:
+            coords = action['cartesian_command'][:3]
+            desiredOrientation = action['cartesian_command'][3:]
+
+            sameCoords = np.all(coords == self.requested_coords)
+            sameOrient = np.all(desiredOrientation == self.requested_orient)
+
+            if sameCoords and sameOrient:
+                arm_joints = self.last_ik
+            else:
+                arm_joints = pybullet.calculateInverseKinematics(0, 7, coords,
                                                       desiredOrientation,
                                                       maxNumIterations=1000,
                                                       residualThreshold=0.001)
+                self.last_ik = arm_joints
+                self.requested_coords = coords
+                self.requested_orient = desiredOrientation
 
-        joint_action = {"joint_command": inv_act[:9],
-                        "render": action['render']}
+            gripper_joints = action['gripper_command']
+            all_joints = np.hstack([arm_joints[:7], gripper_joints])
+
+            joint_action = {"joint_command": all_joints,
+                            "render": action['render']}
 
         return self.step_joints(joint_action)
 

@@ -57,12 +57,12 @@ The ```done```  value returned by```env.step``` is  set to ```True``` only when 
 
 ### Intrinsic and extrinsic phases
 
-The environment is set to run as an "intrinsic phase" for a certain number of timesteps (`env.intrinsic_timesteps` , default 10M).  
+The environment is set to run as an "intrinsic phase" for a certain number of timesteps (`env.intrinsic_timesteps` , default 15M).  
 During the intrinsic phase, no goal is observed.  
 After `env.intrinsic_timesteps` have passed the intrinsic phase ends (`done` is set to `True`).  
 
 When using `real_robots.evaluate`, after the intrinsic phase ends, a number of extrinsic trials will be run.  
-Each extrinsic trial lasts `env.extrinsic_timesteps` (default: 2000).  
+Each extrinsic trial lasts `env.extrinsic_timesteps` (default: 10000).  
 During each extrinsic trial, a different goal is set and it will be displayed in the observation.  
 Each goal consists in moving the objects from a certain starting position to another position on the table.  
 The goal observation shows how the objects should appear when reaching the final position.  
