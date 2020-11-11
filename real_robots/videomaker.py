@@ -22,7 +22,8 @@ class VideoMaker:
     """
     def __init__(self, env, intrinsic=None, extrinsic=None, debug=False):
         self.env = env
-        self.camera = EnvCamera(1.0, 90, -45, 0, [-0.3, 0, .4], fov=90, width=VIDEO_WIDTH, height=VIDEO_HEIGHT)
+        self.camera = EnvCamera(1.0, 90, -45, 0, [-0.3, 0, .4], fov=90,
+                                width=VIDEO_WIDTH, height=VIDEO_HEIGHT)
         self.seed = np.random.randint(100000)
         self.current = None
         self.font = ImageFont.load_default()
@@ -88,16 +89,18 @@ class VideoMaker:
             cv2.destroyAllWindows()
             self.video.release()
 
-    def getGoal(self, observation):
-        goal = observation['goal']
-        goal = Image.fromarray(goal)
-        g_width = int(VIDEO_WIDTH / 3)
-        g_height = int(VIDEO_HEIGHT / 3)
-        goal = goal.resize((g_width, g_height))
-        d = ImageDraw.Draw(goal)
-        w, h = d.textsize("GOAL", font = self.font)
-        d.text((int((g_width-w)/2), int((g_height*0.75)-h/2)), "GOAL", fill=(0, 0, 0), font = self.font)
-        self.goal = goal
+    def makeInset(self, image, text, right):
+        img = Image.fromarray(image)
+        i_width = int(VIDEO_WIDTH / 3)
+        i_height = int(VIDEO_HEIGHT / 3)
+        img = img.resize((i_width, i_height))
+        d = ImageDraw.Draw(img)
+        w, h = d.textsize(text, font = self.font)
+        if right:
+            d.text((int((i_width-w)/2), int((i_height*0.75)-h/2)), text, fill=(0, 0, 0), font = self.font)
+        else:
+            d.text((int((i_width-w)/2), int((i_height*0.75)-h/2)), text, fill=(0, 0, 0), font = self.font)
+        return img
 
     def end_trial(self):
         if self.trial_number in self.extrinsic_trials:
@@ -110,11 +113,28 @@ class VideoMaker:
             time_string = time.strftime("%Y,%m,%d,%H,%M").split(',')
             filename = "Simulation-{}-y{}-m{}-d{}-h{}-m{}-trial-{}.avi".format(self.seed, *time_string, self.trial_number)
             self.video = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'XVID'), self.video_fps, (VIDEO_WIDTH, VIDEO_HEIGHT), isColor=True)
-            self.getGoal(observation)
+            self.goal = self.makeInset(observation['goal'], "GOAL", True)
+            self.start = self.makeInset(observation['retina'], "START", False)
 
     def extrinsic_trial(self, observation, action, steps, score_object):
         if self.trial_number in self.extrinsic_trials:
             if steps % self.frame_freq == 0:
                 camera = Image.fromarray(self.camera.render(self.env._p))
                 camera.paste(self.goal, (VIDEO_WIDTH-int(VIDEO_WIDTH / 3), 0))
+                camera.paste(self.start, (0, 0))
+                if self.debug:
+                    self.addDebugInfo(camera, steps, score_object)
                 self.video.write(cv2.cvtColor(np.array(camera.getdata()).reshape((VIDEO_HEIGHT, VIDEO_WIDTH, 3)).astype(np.uint8), cv2.COLOR_RGB2BGR))
+
+
+    def addDebugInfo(self, camera, steps, score_object):
+        d = ImageDraw.Draw(camera)
+        h = int(VIDEO_HEIGHT / 3) + 3
+        w = VIDEO_WIDTH-int(VIDEO_WIDTH / 3) + 3
+        d.text((3, h), "Trial: " + str(self.trial_number) +
+                       "\nStep: " + str(steps), fill=(0,0,0))
+        if self.trial_number:
+            d.text((w, h), "Score: " + str(score_object["score_total"])[:5] +
+                             "\nScore 2D: " + str(score_object['score_2D'])[:5] +
+                             "\nScore 2.5D: " + str(score_object['score_2.5D'])[:5] +
+                             "\nScore 3D: " + str(score_object['score_3D'])[:5], fill=(0,0,0))
