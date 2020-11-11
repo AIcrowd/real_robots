@@ -34,6 +34,7 @@ class Kuka(URDFBasedRobot):
         JOINT_POSITIONS = "joint_positions"
         TOUCH_SENSORS = "touch_sensors"
         RETINA = "retina"
+        DEPTH = "depth"
         MASK = "mask"
         OBJ_POS = "object_positions"
         GOAL = "goal"
@@ -84,6 +85,8 @@ class Kuka(URDFBasedRobot):
                     0, np.inf, [self.num_touch_sensors], dtype=float),
                 self.ObsSpaces.RETINA: gym.spaces.Box(
                     0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=np.uint8),
+                self.ObsSpaces.DEPTH: gym.spaces.Box(
+                    0, 1, [Kuka.eye_height, Kuka.eye_width], dtype=float),
                 self.ObsSpaces.GOAL: gym.spaces.Box(
                     0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=np.uint8),
                 self.ObsSpaces.MASK: gym.spaces.Box(
@@ -102,6 +105,8 @@ class Kuka(URDFBasedRobot):
                     0, np.inf, [self.num_touch_sensors], dtype=float),
                 self.ObsSpaces.RETINA: gym.spaces.Box(
                     0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=np.uint8),
+                self.ObsSpaces.DEPTH: gym.spaces.Box(
+                    0, 1, [Kuka.eye_height, Kuka.eye_width], dtype=float),
                 self.ObsSpaces.GOAL: gym.spaces.Box(
                     0, 255, [Kuka.eye_height, Kuka.eye_width, 3], dtype=np.uint8)}
             )

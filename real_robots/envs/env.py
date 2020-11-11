@@ -112,12 +112,13 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         self.goal_idx = -1
         self.no_retina = self.observation_space.spaces[
                          self.robot.ObsSpaces.RETINA].sample()*0
+        self.no_depth = self.observation_space.spaces[
+                         self.robot.ObsSpaces.DEPTH].sample()*0
 
         if additional_obs:
             self.get_observation = self.get_observation_extended
             self.no_mask = self.observation_space.spaces[
                                 self.robot.ObsSpaces.MASK].sample()*0
-
 
     def setCamera(self):
         ''' Initialize environment camera
@@ -246,7 +247,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
     def get_retina(self):
         '''
-        :return: the current rgb_array for the eye
+        :return: the current rgb_array, mask and depth for the eye
         '''
         return self.eyes["eye"].render(
                                        self.robot.object_bodies["table"]
@@ -267,14 +268,16 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         sensors = self.robot.get_touch_sensors()
 
         if camera_on:
-            retina, _ = self.get_retina()
+            retina, _, depth = self.get_retina()
         else:
             retina = self.no_retina
+            depth = self.no_depth
 
         observation = {
                 Kuka.ObsSpaces.JOINT_POSITIONS: joints,
                 Kuka.ObsSpaces.TOUCH_SENSORS: sensors,
                 Kuka.ObsSpaces.RETINA: retina,
+                Kuka.ObsSpaces.DEPTH: depth,
                 Kuka.ObsSpaces.GOAL: self.goal.retina}
 
         return observation
@@ -285,10 +288,11 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         sensors = self.robot.get_touch_sensors()
 
         if camera_on:
-            retina, mask = self.get_retina()
+            retina, mask, depth = self.get_retina()
         else:
             retina = self.no_retina
             mask = self.no_mask
+            depth = self.no_depth
 
         all_obj_positions = self.get_all_used_objects()
 
@@ -296,6 +300,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                 Kuka.ObsSpaces.JOINT_POSITIONS: joints,
                 Kuka.ObsSpaces.TOUCH_SENSORS: sensors,
                 Kuka.ObsSpaces.RETINA: retina,
+                Kuka.ObsSpaces.DEPTH: depth,
                 Kuka.ObsSpaces.MASK: mask,
                 Kuka.ObsSpaces.OBJ_POS: all_obj_positions,
                 Kuka.ObsSpaces.GOAL: self.goal.retina,
@@ -544,7 +549,7 @@ class EyeCamera:
                 aspect=float(self.render_width)/self.render_height,
                 nearVal=0.1, farVal=100.0)
 
-        (_, _, px, _, mask) = bullet_client.getCameraImage(
+        (_, _, px, dp, mask) = bullet_client.getCameraImage(
                 width=self.render_width, height=self.render_height,
                 viewMatrix=view_matrix,
                 projectionMatrix=proj_matrix,
@@ -555,7 +560,10 @@ class EyeCamera:
                                          self.render_width, 4)
         rgb_array = rgb_array[:, :, :3]
 
-        return rgb_array, mask
+        depth_array = np.array(dp).reshape(self.render_height,
+                                         self.render_width)
+
+        return rgb_array, mask, depth_array
 
     def renderPitchRoll(self, distance, roll, pitch, yaw, bullet_client=None):
 
