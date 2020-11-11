@@ -51,7 +51,7 @@ class EvaluationService:
                  extrinsic_trials=50,
                  visualize=True,
                  goals_dataset_path="./goals.npy.npz",
-                 video=False):
+                 video=None):
 
         self.ControllerClass = Controller
         self.intrinsic_timesteps = intrinsic_timesteps
@@ -68,7 +68,7 @@ class EvaluationService:
         self.setup_aicrowd_helpers()
         self.video = video
         if self.video:
-            self.videomaker = VideoMaker(self.env)
+            self.videomaker = VideoMaker(self.env, *self.video)
 
     def setup_aicrowd_helpers(self):
         self.aicrowd_events = aicrowd_api.events.AIcrowdEvents()
@@ -170,6 +170,7 @@ class EvaluationService:
         self.env.set_goals_dataset_path(self.goals_dataset_path)
         self.env.intrinsic_timesteps = self.intrinsic_timesteps  # default=15e6
         self.env.extrinsic_timesteps = self.extrinsic_timesteps  # default=10e3
+        self.env.extrinsic_trials = self.extrinsic_trials # default=50
 
         if self.visualize:
             self.env.render('human')
@@ -425,7 +426,7 @@ def evaluate(Controller,
              extrinsic_trials=50,
              visualize=True,
              goals_dataset_path="./goals.npy.npz",
-             video=False):
+             video=None):
 
     evaluation_service = EvaluationService(
         Controller,

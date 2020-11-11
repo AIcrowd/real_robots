@@ -20,17 +20,51 @@ class VideoMaker:
 
 
     """
-    def __init__(self, env):
+    def __init__(self, env, intrinsic=None, extrinsic=None, debug=False):
         self.env = env
         self.camera = EnvCamera(1.0, 90, -45, 0, [-0.3, 0, .4], fov=90, width=VIDEO_WIDTH, height=VIDEO_HEIGHT)
         self.seed = np.random.randint(100000)
         self.current = None
-        self.font = ImageFont.load_default() # ImageFont.truetype('sans.ttf', 36)
+        self.font = ImageFont.load_default()
         self.video_fps = 25
         self.speed_up = 1 #some speed up values will be rounded, see frame_freq
         self.frame_freq = int((200.0 / self.video_fps) * self.speed_up)
-        self.intrinsic_frames = interval([0, 10000], [50000, 60000], [140000, 150000])
-        self.extrinsic_trials = [2,5,20,32,58]
+        self.debug = debug
+
+        print(intrinsic, extrinsic, debug) # DEBUG
+
+        if intrinsic:
+            if type(intrinsic) == interval:
+                self.intrinsic_frames = intrinsic
+            elif type(intrinsic) == bool:
+                self.intrinsic_frames = self.get_intrinsic_frames()
+            else:
+                raise Exception("VideoMaker intrinsic param has to be either" +
+                                "None/False, an interval or True")
+
+        if extrinsic:
+            if type(extrinsic) == interval:
+                self.extrinsic_trials = extrinsic
+            elif type(extrinsic) == bool:
+                self.extrinsic_trials = self.get_extrinsic_trials()
+            else:
+                raise Exception("VideoMaker extrinsic param has to be either" +
+                                "None/False, an interval or True")
+
+    def get_intrinsic_frames(self):
+        int_steps = self.env.intrinsic_timesteps
+        one_min_frames = 60 * self.video_fps * self.frame_freq
+        return interval([0, one_min_frames], 
+                        [int_steps / 2, int_steps + one_min_frames],
+                        [int_steps - one_min_frames, int_steps])
+
+    def get_extrinsic_trials(self):
+        ext_trials = self.env.extrinsic_trials
+        if ext_trials > 0:
+            random_trials = np.random.randint(0, ext_trials, 5)
+            return interval(*random_trials)
+        else:
+            return interval()
 
     def start_intrinsic(self):
         time_string = time.strftime("%Y,%m,%d,%H,%M").split(',')
@@ -55,10 +89,6 @@ class VideoMaker:
         goal = goal.resize((g_width, g_height))
         d = ImageDraw.Draw(goal)
         w, h = d.textsize("GOAL", font = self.font)
-        print("GOAL wh", w, h)
-        #d.resize((int(VIDEO_WIDTH / 30), int(VIDEO_HEIGHT / 30)))
-        print("GOAL gw,gh)", g_width, g_height)
-
         d.text((int((g_width-w)/2), int((g_height*0.75)-h/2)), "GOAL", fill=(0, 0, 0), font = self.font)
         self.goal = goal
 

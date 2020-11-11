@@ -29,8 +29,9 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
     """
 
-    intrinsic_timesteps = int(1e7)
-    extrinsic_timesteps = int(2e3)
+    intrinsic_timesteps = int(15e6)
+    extrinsic_timesteps = int(10e3)
+    extrinsic_trials = int(50)
 
     def __init__(self, render=False, objects=3, action_type='joints',
                  additional_obs=True):
