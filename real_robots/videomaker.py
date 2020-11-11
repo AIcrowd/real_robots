@@ -41,6 +41,8 @@ class VideoMaker:
             else:
                 raise Exception("VideoMaker intrinsic param has to be either" +
                                 "None/False, an interval or True")
+        else:
+            self.intrinsic_frames = interval()
 
         if extrinsic:
             if type(extrinsic) == interval:
@@ -50,6 +52,8 @@ class VideoMaker:
             else:
                 raise Exception("VideoMaker extrinsic param has to be either" +
                                 "None/False, an interval or True")
+        else:
+            self.extrinsic_trials = interval()
 
     def get_intrinsic_frames(self):
         int_steps = self.env.intrinsic_timesteps
@@ -60,16 +64,18 @@ class VideoMaker:
 
     def get_extrinsic_trials(self):
         ext_trials = self.env.extrinsic_trials
+        n_trials = min(ext_trials, 5)
         if ext_trials > 0:
-            random_trials = np.random.randint(0, ext_trials, 5)
-            return interval(*random_trials)
+            selected_t = np.random.choice(ext_trials, n_trials, replace=False)
+            return interval(*selected_t)
         else:
             return interval()
 
     def start_intrinsic(self):
-        time_string = time.strftime("%Y,%m,%d,%H,%M").split(',')
-        filename = "Simulation-{}-y{}-m{}-d{}-h{}-m{}-intrinsic.avi".format(self.seed, *time_string)
-        self.video = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'XVID'), self.video_fps, (VIDEO_WIDTH, VIDEO_HEIGHT), isColor=True)
+        if len(self.intrinsic_frames) > 0:
+            time_string = time.strftime("%Y,%m,%d,%H,%M").split(',')
+            filename = "Simulation-{}-y{}-m{}-d{}-h{}-m{}-intrinsic.avi".format(self.seed, *time_string)
+            self.video = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'XVID'), self.video_fps, (VIDEO_WIDTH, VIDEO_HEIGHT), isColor=True)
 
     def update_intrinsic(self, steps):
         if steps in self.intrinsic_frames:
@@ -78,8 +84,9 @@ class VideoMaker:
                 self.video.write(cv2.cvtColor(np.array(camera.getdata()).reshape((VIDEO_HEIGHT, VIDEO_WIDTH, 3)).astype(np.uint8), cv2.COLOR_RGB2BGR))
 
     def end_intrinsic(self):
-        cv2.destroyAllWindows()
-        self.video.release()
+        if len(self.intrinsic_frames) > 0:
+            cv2.destroyAllWindows()
+            self.video.release()
 
     def getGoal(self, observation):
         goal = observation['goal']
