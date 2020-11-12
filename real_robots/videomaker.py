@@ -32,7 +32,7 @@ class VideoMaker:
         self.frame_freq = int((200.0 / self.video_fps) * self.speed_up)
         self.debug = debug
 
-        print(intrinsic, extrinsic, debug) # DEBUG
+        print(intrinsic, extrinsic, debug)
 
         if intrinsic:
             if type(intrinsic) == interval:
@@ -60,7 +60,7 @@ class VideoMaker:
         int_steps = self.env.intrinsic_timesteps
         one_min_frames = 60 * self.video_fps * self.frame_freq
         return interval([0, one_min_frames], 
-                        [int_steps / 2, int_steps + one_min_frames],
+                        [int_steps / 2, int_steps / 2 + one_min_frames],
                         [int_steps - one_min_frames, int_steps])
 
     def get_extrinsic_trials(self):
@@ -82,6 +82,8 @@ class VideoMaker:
         if steps in self.intrinsic_frames:
             if steps % self.frame_freq == 0:
                 camera = Image.fromarray(self.camera.render(self.env._p))
+                if self.debug:
+                    self.addDebugInfo(camera, steps, None, False)
                 self.video.write(cv2.cvtColor(np.array(camera.getdata()).reshape((VIDEO_HEIGHT, VIDEO_WIDTH, 3)).astype(np.uint8), cv2.COLOR_RGB2BGR))
 
     def end_intrinsic(self):
@@ -123,18 +125,30 @@ class VideoMaker:
                 camera.paste(self.goal, (VIDEO_WIDTH-int(VIDEO_WIDTH / 3), 0))
                 camera.paste(self.start, (0, 0))
                 if self.debug:
-                    self.addDebugInfo(camera, steps, score_object)
+                    self.addDebugInfo(camera, steps, score_object, True)
                 self.video.write(cv2.cvtColor(np.array(camera.getdata()).reshape((VIDEO_HEIGHT, VIDEO_WIDTH, 3)).astype(np.uint8), cv2.COLOR_RGB2BGR))
 
 
-    def addDebugInfo(self, camera, steps, score_object):
+    def addDebugInfo(self, camera, steps, score_object, extrinsic):
         d = ImageDraw.Draw(camera)
-        h = int(VIDEO_HEIGHT / 3) + 3
-        w = VIDEO_WIDTH-int(VIDEO_WIDTH / 3) + 3
-        d.text((3, h), "Trial: " + str(self.trial_number) +
-                       "\nStep: " + str(steps), fill=(0,0,0))
-        if self.trial_number:
-            d.text((w, h), "Score: " + str(score_object["score_total"])[:5] +
-                             "\nScore 2D: " + str(score_object['score_2D'])[:5] +
-                             "\nScore 2.5D: " + str(score_object['score_2.5D'])[:5] +
-                             "\nScore 3D: " + str(score_object['score_3D'])[:5], fill=(0,0,0))
+
+        if extrinsic:
+            h = int(VIDEO_HEIGHT / 3) + 3
+            w = VIDEO_WIDTH-int(VIDEO_WIDTH / 3) + 3
+            d.text((3, h), "Trial: " + str(self.trial_number) +
+                           "\nStep: " + str(steps), fill=(0,0,0))
+            if self.trial_number:
+                d.text((w, h), "Score: " + str(score_object["score_total"])[:5] +
+                                 "\nScore 2D: " + str(score_object['score_2D'])[:5] +
+                                 "\nScore 2.5D: " + str(score_object['score_2.5D'])[:5] +
+                                 "\nScore 3D: " + str(score_object['score_3D'])[:5], fill=(0,0,0))
+        else:
+            h = 3
+            w = 3
+            d.text((3, h), "Intrinsic phase" +
+                           "\nStep: " + str(steps), fill=(0,0,0))
+
+
+
+
+
