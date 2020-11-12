@@ -29,8 +29,9 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
     """
 
-    intrinsic_timesteps = int(1e7)
-    extrinsic_timesteps = int(2e3)
+    intrinsic_timesteps = int(15e6)
+    extrinsic_timesteps = int(10e3)
+    extrinsic_trials = int(50)
 
     def __init__(self, render=False, objects=3, action_type='joints',
                  additional_obs=True):
@@ -65,6 +66,9 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                                 "gripper_command": self.gripper_space,
                                 "render": spaces.MultiBinary(1)})
             self.step = self.step_cartesian
+            self.requested_coords = None
+            self.requested_orient = None
+            self.last_ik = None
 
         elif action_type == 'macro_action':
             self.action_space = spaces.Dict({
@@ -109,6 +113,8 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         self.goal_idx = -1
         self.no_retina = self.observation_space.spaces[
                          self.robot.ObsSpaces.RETINA].sample()*0
+        self.no_depth = self.observation_space.spaces[
+                         self.robot.ObsSpaces.DEPTH].sample()*0
 
         if additional_obs:
             self.get_observation = self.get_observation_extended
@@ -242,7 +248,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
     def get_retina(self):
         '''
-        :return: the current rgb_array for the eye
+        :return: the current rgb_array, mask and depth for the eye
         '''
         return self.eyes["eye"].render(
                                        self.robot.object_bodies["table"]
@@ -254,7 +260,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         '''
         for obj in self.robot.used_objects:
             x, y, z = self.robot.object_bodies[obj].get_position()
-            if z < self.robot.object_poses['table'][2]:
+            if z < self.robot.object_poses['table'][2] or (x > 0.11 and z < 0.29):
                 self.robot.reset_object(obj)
 
     def get_observation(self, camera_on=True):
@@ -263,14 +269,16 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         sensors = self.robot.get_touch_sensors()
 
         if camera_on:
-            retina = self.get_retina()
+            retina, _, depth = self.get_retina()
         else:
             retina = self.no_retina
+            depth = self.no_depth
 
         observation = {
                 Kuka.ObsSpaces.JOINT_POSITIONS: joints,
                 Kuka.ObsSpaces.TOUCH_SENSORS: sensors,
                 Kuka.ObsSpaces.RETINA: retina,
+                Kuka.ObsSpaces.DEPTH: depth,
                 Kuka.ObsSpaces.GOAL: self.goal.retina}
 
         return observation
@@ -281,10 +289,11 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         sensors = self.robot.get_touch_sensors()
 
         if camera_on:
-            retina, mask = self.get_retina()
+            retina, mask, depth = self.get_retina()
         else:
             retina = self.no_retina
             mask = self.no_mask
+            depth = self.no_depth
 
         all_obj_positions = self.get_all_used_objects()
 
@@ -292,6 +301,7 @@ class REALRobotEnv(MJCFBaseBulletEnv):
                 Kuka.ObsSpaces.JOINT_POSITIONS: joints,
                 Kuka.ObsSpaces.TOUCH_SENSORS: sensors,
                 Kuka.ObsSpaces.RETINA: retina,
+                Kuka.ObsSpaces.DEPTH: depth,
                 Kuka.ObsSpaces.MASK: mask,
                 Kuka.ObsSpaces.OBJ_POS: all_obj_positions,
                 Kuka.ObsSpaces.GOAL: self.goal.retina,
@@ -320,6 +330,9 @@ class REALRobotEnv(MJCFBaseBulletEnv):
 
         assert(not self.scene.multiplayer)
 
+        if joint_action is None:
+            joint_action = np.zeros(9)
+
         joint_action = self.limitActionByJoint(joint_action)
 
         self.control_objects_limits()
@@ -343,15 +356,32 @@ class REALRobotEnv(MJCFBaseBulletEnv):
         return observation, reward, done, info
 
     def step_cartesian(self, action):
-        coords = action['cartesian_command'][:3]
-        desiredOrientation = action['cartesian_command'][3:]
-        inv_act = pybullet.calculateInverseKinematics(0, 7, coords,
+        if action['cartesian_command'] is None:
+            joint_action = {"joint_command": np.zeros(9),
+                            "render": action['render']}
+        else:
+            coords = action['cartesian_command'][:3]
+            desiredOrientation = action['cartesian_command'][3:]
+
+            sameCoords = np.all(coords == self.requested_coords)
+            sameOrient = np.all(desiredOrientation == self.requested_orient)
+
+            if sameCoords and sameOrient:
+                arm_joints = self.last_ik
+            else:
+                arm_joints = pybullet.calculateInverseKinematics(0, 7, coords,
                                                       desiredOrientation,
                                                       maxNumIterations=1000,
                                                       residualThreshold=0.001)
+                self.last_ik = arm_joints
+                self.requested_coords = coords
+                self.requested_orient = desiredOrientation
 
-        joint_action = {"joint_command": np.array(inv_act[:9]),
-                        "render": action['render']}
+            gripper_joints = action['gripper_command']
+            all_joints = np.hstack([arm_joints[:7], gripper_joints])
+
+            joint_action = {"joint_command": all_joints,
+                            "render": action['render']}
 
         return self.step_joints(joint_action)
 
@@ -520,7 +550,7 @@ class EyeCamera:
                 aspect=float(self.render_width)/self.render_height,
                 nearVal=0.1, farVal=100.0)
 
-        (_, _, px, _, mask) = bullet_client.getCameraImage(
+        (_, _, px, dp, mask) = bullet_client.getCameraImage(
                 width=self.render_width, height=self.render_height,
                 viewMatrix=view_matrix,
                 projectionMatrix=proj_matrix,
@@ -531,7 +561,10 @@ class EyeCamera:
                                          self.render_width, 4)
         rgb_array = rgb_array[:, :, :3]
 
-        return rgb_array, mask
+        depth_array = np.array(dp).reshape(self.render_height,
+                                         self.render_width)
+
+        return rgb_array, mask, depth_array
 
     def renderPitchRoll(self, distance, roll, pitch, yaw, bullet_client=None):
 
